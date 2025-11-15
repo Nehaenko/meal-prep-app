@@ -1,23 +1,24 @@
-// /api/index.ts
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import { MongoClient } from 'mongodb';
-import { createYoga, createSchema } from 'graphql-yoga';
-import { typeDefs } from './schema';
-import { resolvers } from './resolvers';
-import { authMiddleware, getUserFromReq } from './auth';
+import "dotenv/config";
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import { MongoClient } from "mongodb";
+import { createYoga, createSchema } from "graphql-yoga";
+import { typeDefs } from "./schema";
+import { resolvers } from "./resolvers";
+import { authMiddleware, getUserFromReq } from "./auth";
 
 // import repo factories
-import { createUsersRepo } from './repos/users';
-import { createPlannerRepo } from './repos/planner';
-import { createFavoritesRepo } from './repos/favorites';
-import { createRecipesCacheRepo } from './repos/recipesCache';
-import { createShoppingListsRepo } from './repos/shoppingLists';
+import { createUsersRepo } from "./repos/users";
+import { createPlannerRepo } from "./repos/planner";
+import { createFavoritesRepo } from "./repos/favorites";
+import { createRecipesCacheRepo } from "./repos/recipesCache";
+import { createShoppingListsRepo } from "./repos/shoppingLists";
 
 async function main() {
-  const client = await new MongoClient(process.env.MONGO_URI as string).connect();
+  const client = await new MongoClient(
+    process.env.MONGO_URI as string
+  ).connect();
   const db = client.db(); // default DB from URI
 
   // build repos (Mongo-backed)
@@ -36,22 +37,24 @@ async function main() {
 
   const yoga = createYoga({
     schema: createSchema({ typeDefs, resolvers }),
-    context: ({ request }) => ({
-      user: getUserFromReq(request as any),
-      setAuthCookie: (request as any).setAuthCookie,
-      clearAuthCookie: (request as any).clearAuthCookie,
-      repos
+    context: (ctx: any) => ({
+      user: (ctx.req as any).user,
+      setAuthCookie: (ctx.req as any).setAuthCookie,
+      clearAuthCookie: (ctx.req as any).clearAuthCookie,
+      repos,
     }),
-    cors: false
+    cors: false,
   });
 
-  app.use('/graphql', yoga);
+  app.use("/graphql", yoga);
 
   const port = Number(process.env.PORT || 4000);
-  app.listen(port, () => console.log(`API on http://localhost:${port}/graphql`));
+  app.listen(port, () =>
+    console.log(`API on http://localhost:${port}/graphql`)
+  );
 }
 
-main().catch(err => {
-  console.error('Failed to start API:', err);
+main().catch((err) => {
+  console.error("Failed to start API:", err);
   process.exit(1);
 });
