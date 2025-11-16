@@ -1,9 +1,10 @@
 // /api/resolvers.ts
-import * as spoon from './adapters/spoonacular';
-import bcrypt from 'bcryptjs';
+import * as spoon from "./adapters/spoonacular";
+import bcrypt from "bcryptjs";
+import { GraphQLError } from "graphql";
 
-const EMAIL_IN_USE = 'Email already in use';
-const BAD_CREDENTIALS = 'Invalid email or password';
+const EMAIL_IN_USE = "Email already in use";
+const BAD_CREDENTIALS = "Invalid email or password";
 
 export const resolvers = {
   // ---------- QUERIES ----------
@@ -14,12 +15,12 @@ export const resolvers = {
     },
 
     plannerItems: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error('Not authenticated');
+      if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.planner.list(ctx.user.id);
     },
 
     shoppingLists: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error('Not authenticated');
+      if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.shoppingLists.list(ctx.user.id);
     },
 
@@ -32,7 +33,7 @@ export const resolvers = {
         image: r.image,
         steps: [],
         ingredients: [],
-        source: 'spoonacular',
+        source: "spoonacular",
         timeMinutes: r.readyInMinutes ?? null,
         calories: null,
       }));
@@ -50,29 +51,62 @@ export const resolvers = {
   // ---------- MUTATIONS ----------
   Mutation: {
     // --- AUTH ---
-    signup: async (_: any, { email, password }: any, ctx: any): Promise<boolean> => {
-      if (!email || !password) throw new Error('Email and password are required');
-      const existing = await ctx.repos.users.findByEmail(email);
-      if (existing) throw new Error(EMAIL_IN_USE);
+    signup: async (
+      _: any,
+      { email, password }: any,
+      ctx: any
+    ): Promise<boolean> => {
+      if (!email || !password) {
+        throw new GraphQLError("Email and password are required", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
 
-      // hash password (bcryptjs is pure JS; saltRounds = 10 is fine for dev)
+      const existing = await ctx.repos.users.findByEmail(email);
+      if (existing) {
+        throw new GraphQLError("Email already in use", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
+
       const passwordHash = await bcrypt.hash(password, 10);
       const user = await ctx.repos.users.create(email, passwordHash);
 
-      if (!process.env.JWT_SECRET) throw new Error('Server misconfigured (JWT_SECRET missing)');
+      if (!process.env.JWT_SECRET) {
+        throw new GraphQLError("Server misconfigured", {
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        });
+      }
+
       ctx.setAuthCookie({ id: user.id, email: user.email });
       return true;
     },
 
-    login: async (_: any, { email, password }: any, ctx: any): Promise<boolean> => {
-      if (!email || !password) throw new Error('Email and password are required');
+    login: async (
+      _: any,
+      { email, password }: any,
+      ctx: any
+    ): Promise<boolean> => {
+      if (!email || !password) {
+        throw new GraphQLError("Email and password are required", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
+
       const user = await ctx.repos.users.findByEmail(email);
-      if (!user) throw new Error(BAD_CREDENTIALS);
+      const ok = user && (await bcrypt.compare(password, user.passwordHash));
+      if (!ok) {
+        throw new GraphQLError("Invalid email or password", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
 
-      const ok = await bcrypt.compare(password, user.passwordHash);
-      if (!ok) throw new Error(BAD_CREDENTIALS);
+      if (!process.env.JWT_SECRET) {
+        throw new GraphQLError("Server misconfigured", {
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        });
+      }
 
-      if (!process.env.JWT_SECRET) throw new Error('Server misconfigured (JWT_SECRET missing)');
       ctx.setAuthCookie({ id: user.id, email: user.email });
       return true;
     },
@@ -84,27 +118,27 @@ export const resolvers = {
 
     // --- APP DOMAIN ---
     addToPlanner: async (_: any, { items }: any, ctx: any) => {
-      if (!ctx.user) throw new Error('Not authenticated');
+      if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.planner.addMany(ctx.user.id, items);
     },
 
     removeFromPlanner: async (_: any, { recipeId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error('Not authenticated');
+      if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.planner.remove(ctx.user.id, recipeId);
     },
 
     clearPlanner: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error('Not authenticated');
+      if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.planner.clear(ctx.user.id);
     },
 
     toggleFavorite: async (_: any, { recipeId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error('Not authenticated');
+      if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.favorites.toggle(ctx.user.id, recipeId);
     },
 
     createShoppingList: async (_: any, { recipeId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error('Not authenticated');
+      if (!ctx.user) throw new Error("Not authenticated");
       const recipe =
         (await ctx.repos.recipesCache.get(recipeId)) ||
         (await spoon.getRecipeById(recipeId));
@@ -117,12 +151,12 @@ export const resolvers = {
     },
 
     updateShoppingList: async (_: any, { listId, items }: any, ctx: any) => {
-      if (!ctx.user) throw new Error('Not authenticated');
+      if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.shoppingLists.updateItems(ctx.user.id, listId, items);
     },
 
     deleteShoppingList: async (_: any, { listId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error('Not authenticated');
+      if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.shoppingLists.delete(ctx.user.id, listId);
     },
   },

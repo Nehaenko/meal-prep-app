@@ -1,37 +1,34 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import TestPing from './dev/TestPing'
+import "./App.css";
+import { Routes, Route } from "react-router";
+import useOnlineStatus from "./state/useOnlineStatus";
+import { useAuth } from "./state/AuthContext";
+import SearchPage from "./components/SearchPage/SearchPage";
+import Planner from "./components/Planner/Planner";
+import Favourites from "./components/Favourites/Favourites";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import ErrorBanner from "./components/ui/ErrorBanner";
+import Loader from "./components/ui/Loader";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const online = useOnlineStatus();
+  const { loading } = useAuth();
 
   return (
     <>
-      <div>
-        <TestPing/>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      {!online && <ErrorBanner />}
+      {loading && <Loader />}
+      <Header />
+      <div className="h-screen">
+        <Routes>
+          <Route path="/" element={<SearchPage />} />
+          <Route path="/planner" element={<Planner />} />
+          <Route path="/favourites" element={<Favourites />} />
+        </Routes>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Footer />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
