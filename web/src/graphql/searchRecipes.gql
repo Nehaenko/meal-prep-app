@@ -1,0 +1,15 @@
+query SearchRecipes($ingredients: [String!]!, $page: Int) {
+  searchRecipes(ingredients: $ingredients, page: $page) {
+    page
+    totalPages
+    totalResults
+    items {
+      id
+      title
+      summary
+      image
+      timeMinutes
+      calories
+    }
+  }
+}

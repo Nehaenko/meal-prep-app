@@ -1,7 +1,7 @@
 | Operation                           | Source                              | Notes                                                         |
 | ----------------------------------- | ----------------------------------- | ------------------------------------------------------------- |
-| `searchRecipes(ingredients)`        | Spoonacular                         | Server adapter; cache detail on first open                    |
-| `recipe(id)`                        | recipesCache → fallback Spoonacular | On miss, fetch → normalize → upsert cache                     |
+| `searchRecipes(ingredients)`        | TheMealDB                           | Server adapter; cache detail on first open                    |
+| `recipe(id)`                        | recipesCache → fallback TheMealDB   | On miss, fetch → normalize → upsert cache                     |
 | `plannerItems`                      | Mongo (`plannerItems` by `userId`)  | Sort by `createdAt desc`                                      |
 | `addToPlanner`                      | Mongo insertMany                    | Validate servings; dedupe by (`userId`,`recipeId`) |
 | `removeFromPlanner`                 | Mongo deleteOne                     | By (`userId`,`recipeId`)                                      |
@@ -11,4 +11,3 @@
 | `updateShoppingList(listId, items)` | Mongo updateOne                     | Re-validate item names/units                                  |
 | `deleteShoppingList(listId)`        | Mongo deleteOne                     |                                                               |
 | `generatePrepPlan(recipeIds)`       | LLM                                 | Send compact JSON (ingredients/steps); validate JSON result   |
-

@@ -1,5 +1,5 @@
 // /api/resolvers.ts
-import * as spoon from "./adapters/spoonacular";
+import * as meals from "./adapters/themealdb";
 import bcrypt from "bcryptjs";
 import { GraphQLError } from "graphql";
 
@@ -25,24 +25,34 @@ export const resolvers = {
     },
 
     searchRecipes: async (_: any, { ingredients, page }: any) => {
-      const res = await spoon.searchRecipes(ingredients, page ?? 1);
+      const currentPage = page ?? 1;
+      const { results, totalResults } = await meals.searchRecipes(
+        ingredients,
+        currentPage
+      );
       // minimal card shape for results grid
-      return res.map((r) => ({
-        id: `spoon:${r.id}`,
-        title: r.title,
-        image: r.image,
-        steps: [],
-        ingredients: [],
-        source: "spoonacular",
-        timeMinutes: r.readyInMinutes ?? null,
-        calories: null,
-      }));
+      return {
+        items: results.map((r) => ({
+          id: `mealdb:${r.id}`,
+          title: r.title,
+          image: r.image,
+          summary: r.summary ?? null,
+          steps: [],
+          ingredients: [],
+          source: "themealdb",
+          timeMinutes: r.readyInMinutes ?? null,
+          calories: r.calories ?? null,
+        })),
+        page: currentPage,
+        totalResults,
+        totalPages: Math.max(1, Math.ceil(totalResults / meals.PAGE_SIZE)),
+      };
     },
 
     recipe: async (_: any, { id }: any, ctx: any) => {
       const cached = await ctx.repos.recipesCache.get(id);
       if (cached) return cached;
-      const full = await spoon.getRecipeById(id);
+      const full = await meals.getRecipeById(id);
       await ctx.repos.recipesCache.upsert(full);
       return full;
     },
@@ -141,7 +151,7 @@ export const resolvers = {
       if (!ctx.user) throw new Error("Not authenticated");
       const recipe =
         (await ctx.repos.recipesCache.get(recipeId)) ||
-        (await spoon.getRecipeById(recipeId));
+        (await meals.getRecipeById(recipeId));
       await ctx.repos.recipesCache.upsert(recipe);
       return ctx.repos.shoppingLists.create(ctx.user.id, {
         recipeId,

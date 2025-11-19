@@ -10,7 +10,7 @@
 
 **Queries**
 
-- `searchRecipes(ingredients: [String!]!, page: Int): [Recipe!]!`
+- `searchRecipes(ingredients: [String!]!, page: Int): RecipeSearchResult!`
 - `recipe(id: ID!): Recipe`
 - `plannerItems: [PlannerItem!]!`
 - `favorites: [Recipe!]!`
@@ -33,7 +33,7 @@
 ### Tech in use
 
 - DB: MongoDB (native Node driver, no Mongoose)
-- Recipe API: Spoonacular
+- Recipe API: TheMealDB
 - LLM: for prep-plan merging & substitutions
 
 ```mermaid
@@ -42,13 +42,13 @@ flowchart LR
   web[React + Router + Apollo Client]
   api[Express + GraphQL Yoga]
   db[(MongoDB)]
-  spoon[Spoonacular API]
+  mealdb[TheMealDB API]
   llm[LLM Provider]
 
   user --> web
   web -->|GraphQL| api
   api --> db
-  api --> spoon
+  api --> mealdb
   api --> llm
 ```
 
@@ -58,7 +58,7 @@ flowchart TB
     schema[GraphQL Schema]
     resolvers[Resolvers]
     auth[Auth Middleware]
-    adapters[[Adapters: Spoonacular / LLM]]
+    adapters[[Adapters: TheMealDB / LLM]]
     repos[[Repositories: users, plannerItems, favorites, recipesCache, shoppingLists]]
   end
   schema --> resolvers
@@ -72,13 +72,13 @@ sequenceDiagram
   participant UI as React UI
   participant GQL as GraphQL Yoga
   participant Repo as Mongo (recipesCache, shoppingLists)
-  participant Spoon as Spoonacular
+  participant MealDB as TheMealDB
 
   UI->>GQL: createShoppingList(recipeId)
   GQL->>Repo: find recipe in recipesCache
   alt cache miss
-    GQL->>Spoon: fetch recipe details
-    Spoon-->>GQL: recipe
+    GQL->>MealDB: fetch recipe details
+    MealDB-->>GQL: recipe
     GQL->>Repo: upsert recipe in recipesCache
   end
   GQL->>GQL: compute missing = ingredients − (pantry ∪ initial search)

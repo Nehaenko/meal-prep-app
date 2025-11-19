@@ -1,19 +1,67 @@
 export const typeDefs = /* GraphQL */ `
   scalar JSON
 
-  type Recipe { id: ID!, title: String!, image: String, steps: [String!]!, ingredients: [String!]!, source: String, timeMinutes: Int, calories: Int }
-  type PlannerItem { id: ID!, recipeId: ID!, servings: Int!, createdAt: String! }
-  type ShoppingItem { name: String!, quantity: Float, unit: String, substitutes: [String!] }
-  type ShoppingList { id: ID!, recipeId: ID!, title: String!, items: [ShoppingItem!]!, createdAt: String! }
-  type PrepStep { order: Int!, description: String!, appliesToRecipeIds: [ID!]! }
-  type User { id: ID!, email: String! }
+  type Recipe {
+    id: ID!
+    title: String!
+    summary: String
+    image: String
+    steps: [String!]!
+    ingredients: [String!]!
+    source: String
+    timeMinutes: Int
+    calories: Int
+  }
+  type PlannerItem {
+    id: ID!
+    recipeId: ID!
+    servings: Int!
+    createdAt: String!
+  }
+  type ShoppingItem {
+    name: String!
+    quantity: Float
+    unit: String
+    substitutes: [String!]
+  }
+  type ShoppingList {
+    id: ID!
+    recipeId: ID!
+    title: String!
+    items: [ShoppingItem!]!
+    createdAt: String!
+  }
+  type PrepStep {
+    order: Int!
+    description: String!
+    appliesToRecipeIds: [ID!]!
+  }
+  type User {
+    id: ID!
+    email: String!
+  }
 
-  input PlannerItemInput { recipeId: ID!, servings: Int! }
-  input ShoppingItemInput { name: String!, quantity: Float, unit: String, substitutes: [String!] }
+  input PlannerItemInput {
+    recipeId: ID!
+    servings: Int!
+  }
+  input ShoppingItemInput {
+    name: String!
+    quantity: Float
+    unit: String
+    substitutes: [String!]
+  }
+
+  type RecipeSearchResult {
+    items: [Recipe!]!
+    page: Int!
+    totalResults: Int!
+    totalPages: Int!
+  }
 
   type Query {
     me: User
-    searchRecipes(ingredients: [String!]!, page: Int): [Recipe!]!
+    searchRecipes(ingredients: [String!]!, page: Int): RecipeSearchResult!
     recipe(id: ID!): Recipe
     plannerItems: [PlannerItem!]!
     favorites: [Recipe!]!
@@ -35,6 +83,9 @@ export const typeDefs = /* GraphQL */ `
     deleteShoppingList(listId: ID!): Boolean!
 
     generatePrepPlan(recipeIds: [ID!]!): [PrepStep!]!
-    generateShoppingList(recipeIds: [ID!]!, pantry: [String!]!): [ShoppingItem!]!
+    generateShoppingList(
+      recipeIds: [ID!]!
+      pantry: [String!]!
+    ): [ShoppingItem!]!
   }
 `;
