@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useLazyQuery } from "@apollo/client/react";
 import { useLoading } from "../../state/LoadingContext";
-import SearchRecipes from "../../graphql/SearchRecipes.gql";
+import { SearchRecipes } from "../../graphql";
 import ResultsGrid from "./ResultsGrid";
 import SearchPagination from "./Pagination";
 

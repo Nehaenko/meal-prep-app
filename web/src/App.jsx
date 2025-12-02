@@ -9,6 +9,7 @@ import Favourites from "./components/Favourites/Favourites";
 import Header from "./components/Header";
 import ErrorBanner from "./components/ui/ErrorBanner";
 import Loader from "./components/ui/Loader";
+import ShoppingListsDock from "./components/ShoppingList/ShoppingListsDock";
 
 function App() {
   const online = useOnlineStatus();
@@ -27,6 +28,7 @@ function App() {
           <Route path="/favourites" element={<Favourites />} />
         </Routes>
       </div>
+      <ShoppingListsDock/>
     </>
   );
 }

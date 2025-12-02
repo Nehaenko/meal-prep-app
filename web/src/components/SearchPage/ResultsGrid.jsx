@@ -32,6 +32,21 @@ export default function ResultsGrid({ items }) {
                 )}
               </div>
             </div>
+
+            <div className="flex flex-col p-3 gap-2">
+              <button
+                className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
+                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+              >
+                Add to Planner
+              </button>
+              <button
+                className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
+                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+              >
+                View Meal
+              </button>
+            </div>
           </article>
         ))}
       </div>
