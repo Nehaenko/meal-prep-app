@@ -1,36 +1,49 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 
-const runSearchMock = vi.fn();
+const fakeData = {
+  searchRecipes: {
+    items: [],
+    totalPages: 1,
+    totalResults: 0,
+    page: 1,
+  },
+};
+
 let mockLazyState = { data: null, loading: false, error: null };
-let withLoadingMock = vi.fn((promise) => promise);
+const runSearchMock = vi.fn();
+const withLoadingMock = vi.fn((promise) => Promise.resolve(promise));
 
 vi.mock("@apollo/client/react", () => ({
-  useLazyQuery: vi.fn(() => [runSearchMock, mockLazyState]),
+  useLazyQuery: () => [runSearchMock, mockLazyState],
+}));
+
+vi.mock("../../state/LoadingContext", () => ({
+  useLoading: () => ({ withLoading: withLoadingMock }),
 }));
 
 // Mock GraphQL document so Vite/Vitest doesn't try to load the real .gql file
 vi.mock("../../graphql", () => ({ SearchRecipes: {} }));
 
-vi.mock("../../state/LoadingContext", () => ({
-  useLoading: vi.fn(() => ({
-    withLoading: withLoadingMock,
-  })),
-}));
-
 import SearchPage from "./SearchPage";
 
 beforeEach(() => {
   runSearchMock.mockReset();
-  withLoadingMock = vi.fn((promise) => promise);
+  runSearchMock.mockResolvedValue({ data: fakeData });
+  withLoadingMock.mockClear();
   mockLazyState = { data: null, loading: false, error: null };
 });
 
 describe("SearchPage", () => {
   it("collects ingredients and triggers search with normalized tokens", async () => {
     const user = userEvent.setup();
-    render(<SearchPage />);
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <SearchPage />
+      </MemoryRouter>
+    );
 
     const input = screen.getByLabelText(/search ingredients/i);
     await user.type(input, "Chicken, Garlic");
@@ -46,23 +59,24 @@ describe("SearchPage", () => {
   });
 
   it("renders results summary and cards when search data is available", () => {
-    mockLazyState = {
-      data: {
-        searchRecipes: {
-          items: [
-            { id: "1", title: "Smoky Chili", image: "/chili.jpg" },
-            { id: "2", title: "Fresh Salad", image: "/salad.jpg" },
-          ],
-          totalPages: 2,
-          totalResults: 18,
-          page: 2,
-        },
+    const populated = {
+      searchRecipes: {
+        items: [
+          { id: "1", title: "Smoky Chili", image: "/chili.jpg" },
+          { id: "2", title: "Fresh Salad", image: "/salad.jpg" },
+        ],
+        totalPages: 2,
+        totalResults: 18,
+        page: 2,
       },
-      loading: false,
-      error: null,
     };
+    mockLazyState = { data: populated, loading: false, error: null };
 
-    render(<SearchPage />);
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <SearchPage />
+      </MemoryRouter>
+    );
 
     expect(
       screen.getByText(/Showing 11-12 of 18 recipes/i)

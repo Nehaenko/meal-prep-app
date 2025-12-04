@@ -1,9 +1,13 @@
+import { Link } from "react-router-dom";
+
 export default function ResultsGrid({ items }) {
   return (
     <>
       <div className="mx-auto mt-3 grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((results) => (
-          <article
+          <Link
+            to={`/recipe/${results.id}`}
+            state={{ results }}
             key={results.id}
             className="overflow-hidden rounded-lg border bg-white shadow-sm"
           >
@@ -40,14 +44,8 @@ export default function ResultsGrid({ items }) {
               >
                 Add to Planner
               </button>
-              <button
-                className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
-              >
-                View Meal
-              </button>
             </div>
-          </article>
+          </Link>
         ))}
       </div>
     </>

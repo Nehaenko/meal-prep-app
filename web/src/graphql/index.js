@@ -44,3 +44,19 @@ export const SearchRecipes = gql`
     }
   }
 `;
+
+export const Recipe = gql`
+  query Recipe($id: ID!) {
+    recipe(id: $id) {
+      id
+      title
+      summary
+      image
+      ingredients
+      steps
+      timeMinutes
+      calories
+      source
+    }
+  }
+`;

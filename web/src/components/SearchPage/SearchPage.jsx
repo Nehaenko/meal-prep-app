@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client/react";
 import { useLoading } from "../../state/LoadingContext";
 import { SearchRecipes } from "../../graphql";
@@ -11,7 +12,8 @@ export default function SearchPage() {
   const [inputValue, setInputValue] = useState("");
   const [ingredients, setIngredients] = useState([]);
   const [page, setPage] = useState(1);
-  
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const inputRef = useRef(null);
   const [runSearch, { data, loading, error }] = useLazyQuery(SearchRecipes, {
     fetchPolicy: "network-only",
@@ -97,7 +99,15 @@ export default function SearchPage() {
       runSearch({
         variables: { ingredients: targetIngredients, page: targetPage },
       })
-    );
+    ).catch((err) => {
+      // Ignore aborts from route changes / StrictMode double-invoke
+      if (err?.name === "AbortError") return;
+      throw err;
+    });
+    setSearchParams({
+      q: targetIngredients.join(","),
+      page: String(targetPage),
+    });
   }
 
   function goToPage(nextPage) {
@@ -113,9 +123,21 @@ export default function SearchPage() {
   const currentPage = searchResult?.page ?? page;
   const hasSearched = !!data;
   const startIndex = items.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
-  const endIndex = items.length ? (currentPage - 1) * PAGE_SIZE + items.length : 0;
+  const endIndex = items.length
+    ? (currentPage - 1) * PAGE_SIZE + items.length
+    : 0;
   const displayTotal = totalResults || endIndex;
   const canPaginate = items.length > 0 && totalPages > 1;
+
+  useEffect(() => {
+    const query = searchParams.get("q");
+    const page = Number(searchParams.get("page")) || 1;
+    const fromUrl = query ? query.split(",").filter(Boolean) : [];
+    if (fromUrl.length) {
+      setIngredients(fromUrl);
+      executeSearch(fromUrl, page);
+    }
+  }, []);
 
   return (
     <div className="mt-8 px-4">
