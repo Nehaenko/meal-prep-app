@@ -24,8 +24,8 @@ const nav = [
 const cx = (...c) => c.filter(Boolean).join(" ");
 
 export default function Header() {
-  const { user, logOut } = useAuth();
-  const mustAuth = !user;
+  const { user, loading, logOut } = useAuth();
+  const mustAuth = !loading && !user;
 
   return (
     <header className="relative">
@@ -106,7 +106,8 @@ export default function Header() {
                       </MenuItems>
                     </Menu>
                   ) : (
-                    !mustAuth && (
+                    !loading &&
+                    !user && (
                       <span className="text-gray-300 text-sm px-2">
                         Please sign in
                       </span>
