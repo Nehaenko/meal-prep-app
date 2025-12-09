@@ -14,6 +14,7 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { NavLink } from "react-router-dom";
 import AuthModal from "./Auth/AuthModal";
 import { useAuth } from "../state/AuthContext";
+import { usePlanner } from "../state/PlannerContext";
 
 const nav = [
   { name: "Search", href: "/" },
@@ -26,6 +27,8 @@ const cx = (...c) => c.filter(Boolean).join(" ");
 export default function Header() {
   const { user, loading, logOut } = useAuth();
   const mustAuth = !loading && !user;
+  const { plannerItems } = usePlanner();
+  const plannerCount = plannerItems?.length ?? 0;
 
   return (
     <header className="relative">
@@ -70,16 +73,21 @@ export default function Header() {
                               isActive
                                 ? "bg-gray-950/50 text-white"
                                 : "text-gray-300 hover:bg-white/5 hover:text-white",
-                              "rounded-md px-3 py-2 text-sm font-medium"
+                              "rounded-md px-3 py-2 text-sm font-medium flex items-center gap-2"
                             )
                           }
                           end={item.href === "/"}
                         >
-                          {item.name}
+                          <span>{item.name}</span>
+                          {item.name === "Planner" && plannerCount > 0 && (
+                            <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-indigo-500 px-2 text-xs font-semibold text-white">
+                              {plannerCount}
+                            </span>
+                          )}
                         </NavLink>
                       ))}
-                    </div>
                   </div>
+                </div>
                 </div>
 
                 <div className="hidden sm:flex sm:items-center">
@@ -130,11 +138,16 @@ export default function Header() {
                         isActive
                           ? "bg-gray-950/50 text-white"
                           : "text-gray-300 hover:bg-white/5 hover:text-white",
-                        "block rounded-md px-3 py-2 text-base font-medium"
+                        "block rounded-md px-3 py-2 text-base font-medium flex items-center gap-2"
                       )
                     }
                   >
-                    {item.name}
+                    <span>{item.name}</span>
+                    {item.name === "Planner" && plannerCount > 0 && (
+                      <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-indigo-500 px-2 text-xs font-semibold text-white">
+                        {plannerCount}
+                      </span>
+                    )}
                   </DisclosureButton>
                 ))}
 

@@ -60,3 +60,37 @@ export const Recipe = gql`
     }
   }
 `;
+
+export const AddToPlanner = gql`
+  mutation AddToPlanner($items: [PlannerItemInput!]!) {
+    addToPlanner(items: $items) {
+      id
+      recipeId
+      servings
+      createdAt
+    }
+  }
+`;
+
+export const RemoveFromPlanner = gql`
+  mutation RemoveFromPlanner($recipeId: ID!) {
+    removeFromPlanner(recipeId: $recipeId)
+  }
+`;
+
+export const ClearPlanner = gql`
+  mutation ClearPlanner {
+    clearPlanner
+  }
+`;
+
+export const PlannerItems = gql`
+  query PlannerItems {
+    plannerItems {
+      id
+      recipeId
+      servings
+      createdAt
+    }
+  }
+`;
