@@ -19,6 +19,16 @@ vi.mock("../state/AuthContext", () => ({
   })),
 }));
 
+vi.mock("../state/PlannerContext", () => ({
+  usePlanner: () => ({
+    plannerItems: [],
+    loading: false,
+    addToPlanner: vi.fn(),
+    removeFromPlanner: vi.fn(),
+    clearPlanner: vi.fn(),
+  }),
+}));
+
 import Header from "../components/Header";
 
 beforeEach(() => {

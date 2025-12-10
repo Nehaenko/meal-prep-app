@@ -109,22 +109,28 @@ export default function Planner() {
           ))}
           {recipesLoading && <p>Loading recipe details…</p>}
           {recipeError && <p className="text-red-600 text-sm">{recipeError}</p>}
+          <div className="flex flex-col gap-3">
+            <button
+              className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
+                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+            >
+              Clear everything
+            </button>
+            <button
+              className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
+                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+            >
+              Generate prep steps
+            </button>
+            <button
+              className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
+                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+            >
+              Generate shopping list
+            </button>
+          </div>
         </div>
       )}
-      <div className="flex flex-col gap-3">
-        <button
-          className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
-        >
-          Generate prep steps
-        </button>
-        <button
-          className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
-        >
-          Generate shopping list
-        </button>
-      </div>
     </>
   );
 }
