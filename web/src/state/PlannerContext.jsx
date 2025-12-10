@@ -12,6 +12,7 @@ import {
   ClearPlanner,
   PlannerItems,
 } from "../graphql/index";
+import { useAuth } from "./AuthContext";
 
 const PlannerContext = createContext(null);
 
@@ -25,10 +26,16 @@ function extractMessage(errOrArr) {
 
 export function PlannerProvider({ children }) {
   const client = useApolloClient();
+  const { user, loading: authLoading } = useAuth();
   const [plannerItems, setPlannerItems] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchPlannerItems = useCallback(async () => {
+    if (!user) {
+      setPlannerItems([]);
+      setLoading(false);
+      return;
+    }
     try {
       const { data } = await client.query({
         query: PlannerItems,
@@ -40,11 +47,18 @@ export function PlannerProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [client]);
+  }, [client, user]);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setPlannerItems([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     fetchPlannerItems();
-  }, [fetchPlannerItems]);
+  }, [user, authLoading, fetchPlannerItems]);
 
   const clearPlanner = async () => {
     setLoading(true);
