@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useLazyQuery } from "@apollo/client/react";
 import { useParams, useLocation } from "react-router-dom";
 import { Recipe } from "../../graphql";
+import AddToPlannerButton from "../ActionElements/AddToPlannerButton";
 import { useLoading } from "../../state/LoadingContext";
 
 export default function MealPage() {
@@ -9,7 +10,6 @@ export default function MealPage() {
   const location = useLocation();
   const initialData = location.state?.results;
   const { withLoading } = useLoading();
-
   const [fetchRecipe, { data, loading, error }] = useLazyQuery(Recipe, {
     fetchPolicy: "cache-first",
   });
@@ -67,12 +67,7 @@ export default function MealPage() {
         </p>
       )}
       <div className="flex flex-col p-3 gap-2">
-        <button
-          className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
-        >
-          Add to Planner
-        </button>
+        <AddToPlannerButton recipe={recipe} />
         <button
           className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
                      shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"

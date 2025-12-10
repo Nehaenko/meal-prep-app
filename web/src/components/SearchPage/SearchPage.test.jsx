@@ -24,6 +24,16 @@ vi.mock("../../state/LoadingContext", () => ({
   useLoading: () => ({ withLoading: withLoadingMock }),
 }));
 
+vi.mock("../../state/PlannerContext", () => ({
+  usePlanner: () => ({
+    plannerItems: [],
+    loading: false,
+    addToPlanner: vi.fn(),
+    removeFromPlanner: vi.fn(),
+    clearPlanner: vi.fn(),
+  }),
+}));
+
 // Mock GraphQL document so Vite/Vitest doesn't try to load the real .gql file
 vi.mock("../../graphql", () => ({ SearchRecipes: {} }));
 

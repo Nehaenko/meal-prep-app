@@ -25,6 +25,16 @@ vi.mock("@apollo/client/react", () => ({
   ],
 }));
 
+vi.mock("../../state/PlannerContext", () => ({
+  usePlanner: () => ({
+    plannerItems: [],
+    loading: false,
+    addToPlanner: vi.fn(),
+    removeFromPlanner: vi.fn(),
+    clearPlanner: vi.fn(),
+  }),
+}));
+
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return {

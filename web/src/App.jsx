@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import ErrorBanner from "./components/ui/ErrorBanner";
 import Loader from "./components/ui/Loader";
 import ShoppingListsDock from "./components/ShoppingList/ShoppingListsDock";
+import PrepStepsList from "./components/Planner/PrepSteps";
 import AppRoutes from "./routes"; 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <AppRoutes />
       </div>
       <ShoppingListsDock />
+      <PrepStepsList />
     </>
   );
 }
