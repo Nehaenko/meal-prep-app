@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import AddToPlannerButton from "../ActionElements/AddToPlannerButton";
+import AddToFavouritesButton from "../ActionElements/AddToFavouritesButton";
 
 export default function ResultsGrid({ items }) {
   return (
@@ -44,6 +45,9 @@ export default function ResultsGrid({ items }) {
 
             <div className="flex flex-col p-3 gap-2 border-t bg-gray-50">
               <AddToPlannerButton recipe={results} />
+            </div>
+            <div className="flex flex-col p-3 gap-2 border-t bg-gray-50">
+              <AddToFavouritesButton recipe={results} />
             </div>
           </div>
         ))}

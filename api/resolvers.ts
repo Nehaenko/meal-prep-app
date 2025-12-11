@@ -20,6 +20,21 @@ export const resolvers = {
       return ctx.repos.planner.list(ctx.user.id);
     },
 
+    favorites: async (_: any, __: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      const ids: string[] = await ctx.repos.favorites.listIds(ctx.user.id);
+      const recipes = await Promise.all(
+        ids.map(async (id) => {
+          const cached = await ctx.repos.recipesCache.get(id);
+          if (cached) return cached;
+          const fetched = await meals.getRecipeById(id);
+          await ctx.repos.recipesCache.upsert(fetched);
+          return fetched;
+        })
+      );
+      return recipes.filter(Boolean);
+    },
+
     shoppingLists: async (_: any, __: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.shoppingLists.list(ctx.user.id);

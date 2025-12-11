@@ -5,7 +5,26 @@ const client = new ApolloClient({
     uri: import.meta.env.VITE_API_URL,
     credentials: "include",
   }),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          plannerItems: {
+            // Always replace plannerItems list so cache doesn't warn about merges.
+            merge(_, incoming) {
+              return incoming;
+            },
+          },
+          favorites: {
+            // Replace favorites list as a whole to avoid merge warnings.
+            merge(_, incoming) {
+              return incoming;
+            },
+          },
+        },
+      },
+    },
+  }),
   defaultOptions: {
     watchQuery: { fetchPolicy: "cache-and-network", errorPolicy: "all" },
     query: { fetchPolicy: "network-only", errorPolicy: "all" },

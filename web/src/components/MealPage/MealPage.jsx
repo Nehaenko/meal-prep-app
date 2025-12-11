@@ -3,6 +3,7 @@ import { useLazyQuery } from "@apollo/client/react";
 import { useParams, useLocation } from "react-router-dom";
 import { Recipe } from "../../graphql";
 import AddToPlannerButton from "../ActionElements/AddToPlannerButton";
+import AddToFavouritesButton from "../ActionElements/AddToFavouritesButton";
 import { useLoading } from "../../state/LoadingContext";
 
 export default function MealPage() {
@@ -68,6 +69,7 @@ export default function MealPage() {
       )}
       <div className="flex flex-col p-3 gap-2">
         <AddToPlannerButton recipe={recipe} />
+        <AddToFavouritesButton recipe={recipe} />
         <button
           className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
                      shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"

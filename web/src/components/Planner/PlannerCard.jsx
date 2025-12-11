@@ -1,6 +1,25 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { usePlanner } from "../../state/PlannerContext";
+import AddToFavouritesButton from "../ActionElements/AddToFavouritesButton";
 
-export default function PlannerCart({ itemsWithRecipe, selectedIds, toggleSelection }) {
+export default function PlannerCart({
+  itemsWithRecipe,
+  selectedIds,
+  toggleSelection,
+}) {
+  const { removeFromPlanner } = usePlanner();
+  const [plannerError, setPlannerError] = useState("");
+
+  async function removeFromPlannerHandler(id) {
+    try {
+      await removeFromPlanner(id);
+    } catch (error) {
+      setPlannerError(error.message);
+      setTimeout(() => setPlannerError(""), 3000);
+    }
+  }
+
   return (
     <>
       {itemsWithRecipe.map(({ item, recipe }) => (
@@ -39,6 +58,11 @@ export default function PlannerCart({ itemsWithRecipe, selectedIds, toggleSelect
               <p className="text-xs text-gray-500">Added: {item.createdAt}</p>
             </div>
           </Link>
+          <button onClick={() => removeFromPlannerHandler(recipe.id)}>
+            Remove from planner
+          </button>
+          <AddToFavouritesButton recipe={recipe} />
+          {plannerError ? plannerError : ""}
         </div>
       ))}
     </>

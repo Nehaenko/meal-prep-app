@@ -104,3 +104,25 @@ export const PlannerItems = gql`
     }
   }
 `;
+
+export const Favorites = gql`
+  query Favorites {
+    favorites {
+      id
+      title
+      summary
+      image
+      steps
+      ingredients
+      source
+      timeMinutes
+      calories
+    }
+  }
+`;
+
+export const ToggleFavorite = gql`
+  mutation ToggleFavorite($recipeId: ID!) {
+    toggleFavorite(recipeId: $recipeId)
+  }
+`;

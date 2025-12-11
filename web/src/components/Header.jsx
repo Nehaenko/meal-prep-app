@@ -15,6 +15,7 @@ import { NavLink } from "react-router-dom";
 import AuthModal from "./Auth/AuthModal";
 import { useAuth } from "../state/AuthContext";
 import { usePlanner } from "../state/PlannerContext";
+import { useFavourites } from "../state/FavouriesContext";
 
 const nav = [
   { name: "Search", href: "/" },
@@ -28,7 +29,9 @@ export default function Header() {
   const { user, loading, logOut } = useAuth();
   const mustAuth = !loading && !user;
   const { plannerItems } = usePlanner();
+  const { favouritesItems } = useFavourites();
   const plannerCount = plannerItems?.length ?? 0;
+  const favouritesCount = favouritesItems?.length ?? 0;
 
   return (
     <header className="relative">
@@ -84,10 +87,16 @@ export default function Header() {
                               {plannerCount}
                             </span>
                           )}
+                          {item.name === "Favourites" &&
+                            favouritesCount > 0 && (
+                              <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-indigo-500 px-2 text-xs font-semibold text-white">
+                                {favouritesCount}
+                              </span>
+                            )}
                         </NavLink>
                       ))}
+                    </div>
                   </div>
-                </div>
                 </div>
 
                 <div className="hidden sm:flex sm:items-center">
@@ -146,6 +155,11 @@ export default function Header() {
                     {item.name === "Planner" && plannerCount > 0 && (
                       <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-indigo-500 px-2 text-xs font-semibold text-white">
                         {plannerCount}
+                      </span>
+                    )}
+                    {item.name === "Favourites" && favouritesCount > 0 && (
+                      <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-indigo-500 px-2 text-xs font-semibold text-white">
+                        {favouritesCount}
                       </span>
                     )}
                   </DisclosureButton>

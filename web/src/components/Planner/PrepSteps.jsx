@@ -3,9 +3,9 @@ import prepIcon from "../../../images/cooking.png";
 export default function PrepStepsList({ prepSteps, itemsWithRecipe, recipesById, prepError }) {
   return (
     <>
-      <button className="sticky bottom-[100px] w-full flex justify-end cursor-pointer">
+      {/* <button className="sticky bottom-[100px] w-full flex justify-end cursor-pointer">
         <img className="w-20" src={prepIcon} alt="Prep Lists" />
-      </button>
+      </button> */}
       {prepError && <p className="text-red-600 text-sm">{prepError}</p>}
       <div>
         {prepSteps && prepSteps.length > 0 && (
