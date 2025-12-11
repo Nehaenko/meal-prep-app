@@ -84,6 +84,16 @@ export const ClearPlanner = gql`
   }
 `;
 
+export const GeneratePrepPlan = gql`
+  mutation GeneratePrepPlan($recipeIds: [ID!]!) {
+    generatePrepPlan(recipeIds: $recipeIds) {
+      order
+      description
+      appliesToRecipeIds
+    }
+  }
+`;
+
 export const PlannerItems = gql`
   query PlannerItems {
     plannerItems {
@@ -92,5 +102,27 @@ export const PlannerItems = gql`
       servings
       createdAt
     }
+  }
+`;
+
+export const Favorites = gql`
+  query Favorites {
+    favorites {
+      id
+      title
+      summary
+      image
+      steps
+      ingredients
+      source
+      timeMinutes
+      calories
+    }
+  }
+`;
+
+export const ToggleFavorite = gql`
+  mutation ToggleFavorite($recipeId: ID!) {
+    toggleFavorite(recipeId: $recipeId)
   }
 `;

@@ -22,8 +22,8 @@ function App() {
       <div className="h-screen">
         <AppRoutes />
       </div>
-      <ShoppingListsDock />
-      <PrepStepsList />
+      {/* <ShoppingListsDock />
+      <PrepStepsList /> */}
     </>
   );
 }
