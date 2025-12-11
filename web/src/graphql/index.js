@@ -84,6 +84,16 @@ export const ClearPlanner = gql`
   }
 `;
 
+export const GeneratePrepPlan = gql`
+  mutation GeneratePrepPlan($recipeIds: [ID!]!) {
+    generatePrepPlan(recipeIds: $recipeIds) {
+      order
+      description
+      appliesToRecipeIds
+    }
+  }
+`;
+
 export const PlannerItems = gql`
   query PlannerItems {
     plannerItems {

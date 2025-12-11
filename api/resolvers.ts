@@ -1,5 +1,6 @@
 // /api/resolvers.ts
 import * as meals from "./adapters/themealdb";
+import { generatePrepPlan as buildPrepPlan } from "./adapters/llm";
 import bcrypt from "bcryptjs";
 import { GraphQLError } from "graphql";
 
@@ -168,6 +169,42 @@ export const resolvers = {
     deleteShoppingList: async (_: any, { listId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.shoppingLists.delete(ctx.user.id, listId);
+    },
+
+    generatePrepPlan: async (_: any, { recipeIds }: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      if (!Array.isArray(recipeIds) || recipeIds.length === 0) {
+        throw new GraphQLError("At least one recipe is required", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
+
+      try {
+        const recipes = await Promise.all(
+          recipeIds.map(async (id: string) => {
+            const cached = await ctx.repos.recipesCache.get(id);
+            if (cached) return cached;
+            const fetched = await meals.getRecipeById(id);
+            await ctx.repos.recipesCache.upsert(fetched);
+            return fetched;
+          })
+        );
+
+        const steps = await buildPrepPlan(recipes);
+        return steps.map((step: any, idx: number) => ({
+          order: step?.order ?? idx + 1,
+          description: step?.description ?? "",
+          appliesToRecipeIds:
+            Array.isArray(step?.appliesToRecipeIds) && step.appliesToRecipeIds.length
+              ? step.appliesToRecipeIds
+              : recipeIds,
+        }));
+      } catch (err: any) {
+        console.error("generatePrepPlan failed", err);
+        throw new GraphQLError(err?.message || "Failed to generate prep plan", {
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        });
+      }
     },
   },
 };

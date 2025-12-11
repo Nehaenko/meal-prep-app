@@ -1,15 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useApolloClient } from "@apollo/client/react";
 import { usePlanner } from "../../state/PlannerContext";
-import { Recipe } from "../../graphql";
-import { Link } from "react-router-dom";
+import { Recipe, GeneratePrepPlan } from "../../graphql";
+import PrepStepsList from "./PrepSteps";
+import PlannerCart from "./PlannerCard";
 
 export default function Planner() {
-  const { plannerItems, loading } = usePlanner();
+  const { plannerItems, loading, clearPlanner } = usePlanner();
   const client = useApolloClient();
   const [recipesById, setRecipesById] = useState({});
   const [recipeError, setRecipeError] = useState("");
   const [recipesLoading, setRecipesLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [prepSteps, setPrepSteps] = useState([]);
+  const [prepLoading, setPrepLoading] = useState(false);
+  const [prepError, setPrepError] = useState("");
 
   // Fetch recipe details for planner items so we can show titles/images.
   useEffect(() => {
@@ -60,6 +65,51 @@ export default function Planner() {
     };
   }, [plannerItems, recipesById, client]);
 
+  useEffect(() => {
+    setSelectedIds(new Set(plannerItems?.map((item) => item.recipeId) ?? []));
+  }, [plannerItems]);
+
+  const clearHandler = async () => {
+    await clearPlanner(true);
+    setPrepSteps([]);
+    setSelectedIds(new Set());
+    setPrepError("");
+  };
+
+  const toggleSelection = (recipeId, isSelected) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (isSelected) next.add(recipeId);
+      else next.delete(recipeId);
+      return next;
+    });
+  };
+
+  const selectedList = useMemo(() => Array.from(selectedIds), [selectedIds]);
+
+  const handleGeneratePrepPlan = async () => {
+    setPrepError("");
+    setPrepSteps([]);
+    if (selectedList.length === 0) {
+      setPrepError("Select at least one meal to generate a prep plan.");
+      return;
+    }
+    try {
+      setPrepLoading(true);
+      const { data } = await client.mutate({
+        mutation: GeneratePrepPlan,
+        variables: { recipeIds: selectedList },
+      });
+      setPrepSteps(data?.generatePrepPlan ?? []);
+    } catch (err) {
+      const message =
+        err?.message || "Failed to generate prep steps. Please try again.";
+      setPrepError(message);
+    } finally {
+      setPrepLoading(false);
+    }
+  };
+
   const itemsWithRecipe = useMemo(() => {
     if (!plannerItems) return [];
     return plannerItems.map((item) => ({
@@ -72,55 +122,34 @@ export default function Planner() {
   return (
     <>
       {loading && <p>Loading planner...</p>}
-      {plannerCount === 0 && !loading && <p>Planner is empty</p>}
+      {plannerCount === 0 && !loading && (
+        <p data-testid="planner_empty">Planner is empty</p>
+      )}
       {plannerCount > 0 && (
         <div className="space-y-2">
-          {itemsWithRecipe.map(({ item, recipe }) => (
-            <Link
-              key={item.id}
-              to={`/recipe/${item.recipeId}`}
-              state={recipe ? { results: recipe } : undefined}
-              className="block"
-            >
-              <div className="flex items-center gap-3 rounded border p-3">
-                {recipe?.image && (
-                  <img
-                    src={recipe.image}
-                    alt={recipe.title}
-                    className="h-16 w-16 rounded object-cover"
-                  />
-                )}
-                <div className="flex-1">
-                  <p className="font-semibold">
-                    {recipe?.title ?? item.recipeId}
-                  </p>
-                  {recipe?.summary && (
-                    <p className="text-sm text-gray-700">{recipe.summary}</p>
-                  )}
-                  <p className="text-sm text-gray-600">
-                    Servings: {item.servings}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Added: {item.createdAt}
-                  </p>
-                </div>
-              </div>
-            </Link>
-          ))}
+          <button
+            onClick={clearHandler}
+            data-testid="clear_planner"
+            className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
+                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+          >
+            Clear planner
+          </button>
+          <PlannerCart
+            itemsWithRecipe={itemsWithRecipe}
+            selectedIds={selectedIds}
+            toggleSelection={toggleSelection}
+          />
           {recipesLoading && <p>Loading recipe details…</p>}
           {recipeError && <p className="text-red-600 text-sm">{recipeError}</p>}
           <div className="flex flex-col gap-3">
             <button
+              onClick={handleGeneratePrepPlan}
+              disabled={prepLoading || selectedList.length === 0}
               className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
                      shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
             >
-              Clear everything
-            </button>
-            <button
-              className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
-            >
-              Generate prep steps
+              {prepLoading ? "Generating..." : "Generate prep steps"}
             </button>
             <button
               className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
@@ -129,6 +158,12 @@ export default function Planner() {
               Generate shopping list
             </button>
           </div>
+          <PrepStepsList
+            prepSteps={prepSteps}
+            itemsWithRecipe={itemsWithRecipe}
+            recipesById={recipesById}
+            prepError={prepError}
+          />
         </div>
       )}
     </>

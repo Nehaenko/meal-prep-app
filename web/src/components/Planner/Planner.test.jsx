@@ -18,6 +18,7 @@ import Planner from "./Planner";
 
 const addToPlannerMock = vi.fn();
 const removeFromPlannerMock = vi.fn();
+const clearPlanner = vi.fn();
 let plannerState;
 let queryMock;
 
@@ -41,6 +42,8 @@ describe("Planner flows", () => {
     addToPlannerMock.mockResolvedValue();
     removeFromPlannerMock.mockReset();
     removeFromPlannerMock.mockResolvedValue();
+    clearPlanner.mockReset();
+    clearPlanner.mockResolvedValue();
 
     queryMock = vi.fn(({ variables }) =>
       Promise.resolve({
@@ -60,6 +63,7 @@ describe("Planner flows", () => {
       loading: false,
       addToPlanner: addToPlannerMock,
       removeFromPlanner: removeFromPlannerMock,
+      clearPlanner: clearPlanner,
     };
   });
 
@@ -120,6 +124,35 @@ describe("Planner flows", () => {
     expect(screen.getByRole("img", { name: "Recipe abc123" })).toHaveAttribute(
       "src",
       "/images/abc123.jpg"
+    );
+  });
+
+  it("clear all planner items", async () => {
+    const user = userEvent.setup();
+    plannerState.plannerItems = [
+      { id: "plan-1", recipeId: "abc123", servings: 2 },
+    ];
+    clearPlanner.mockImplementation(async () => {
+      // simulate context update after clearing
+      plannerState = { ...plannerState, plannerItems: [] };
+    });
+
+    const { rerender } = render(
+      <MemoryRouter initialEntries={["/planner"]}>
+        <Planner />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByTestId("clear_planner"));
+    rerender(
+      <MemoryRouter initialEntries={["/planner"]}>
+        <Planner />
+      </MemoryRouter>
+    );
+
+    expect(clearPlanner).toHaveBeenCalledWith(true);
+    await waitFor(() =>
+      expect(screen.getByTestId("planner_empty")).toBeInTheDocument()
     );
   });
 });
