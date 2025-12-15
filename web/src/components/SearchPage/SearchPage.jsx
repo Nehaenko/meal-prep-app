@@ -1,12 +1,22 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client/react";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useLoading } from "../../state/LoadingContext";
 import { SearchRecipes } from "../../graphql";
 import ResultsGrid from "./ResultsGrid";
 import SearchPagination from "./Pagination";
 
 const PAGE_SIZE = 10;
+const quickFilters = [
+  { label: "Foods", emoji: "🥗" },
+  { label: "Fruits", emoji: "🍓" },
+  { label: "Juices", emoji: "🧃" },
+  { label: "Vegetables", emoji: "🥬" },
+  { label: "Meat", emoji: "🍗" },
+  { label: "Dessert", emoji: "🍨" },
+];
+const cx = (...c) => c.filter(Boolean).join(" ");
 
 export default function SearchPage() {
   const [inputValue, setInputValue] = useState("");
@@ -139,96 +149,124 @@ export default function SearchPage() {
     }
   }, []);
 
+  const quickSelected = useMemo(() => ingredients[0], [ingredients]);
+
+  function handleQuickFilter(label) {
+    const token = label.toLowerCase();
+    setIngredients([token]);
+    setInputValue("");
+    executeSearch([token], 1);
+  }
+
   return (
-    <div className="mt-8 px-4">
-      <form
-        className="mx-auto flex max-w-xl items-center gap-2"
-        onSubmit={onSubmit}
-      >
-        <label htmlFor="ingredient-search" className="sr-only">
-          Search ingredients
-        </label>
-        <div className="relative w-full">
-          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-            {/* pot icon */}
-            <svg
-              className="h-5 w-5 text-gray-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M7 7h10" />
-              <path d="M12 5v2" />
-              <path d="M3 11h2" />
-              <path d="M19 11h2" />
-              <rect x="5" y="9" width="14" height="9" rx="2" />
-            </svg>
+    <div className="mt-4 space-y-6">
+      <section className="glass-card px-4 py-5 sm:px-6 sm:py-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-[var(--green-700)]">
+              Hello foodie 👋
+            </p>
+            <h1 className="text-3xl font-extrabold text-[var(--ink-900)]">
+              Let&apos;s eat.
+            </h1>
+            <p className="text-[var(--muted-400)] font-medium">
+              Nutritious food at your fingertips.
+            </p>
           </div>
-          <div
-            className="flex min-h-[44px] w-full flex-wrap items-center gap-2 rounded-lg border border-gray-300 bg-white py-1.5 pl-10 pr-3 text-sm text-gray-900 shadow-sm
-                       placeholder:text-gray-400 focus-within:border-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500"
-            onClick={() => inputRef.current?.focus()}
-          >
-            {ingredients.map((ingredient) => (
-              <span
-                key={ingredient}
-                className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 ring-1 ring-gray-200"
-              >
-                {ingredient}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveIngredient(ingredient)}
-                  className="text-gray-400 transition hover:text-gray-600"
-                >
-                  <span className="sr-only">Remove {ingredient}</span>
-                  &times;
-                </button>
-              </span>
-            ))}
-            <input
-              id="ingredient-search"
-              ref={inputRef}
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-              onBlur={handleInputBlur}
-              onKeyDown={handleInputKeyDown}
-              placeholder={
-                ingredients.length === 0
-                  ? "Type ingredients, separated by commas…"
-                  : ""
-              }
-              className="flex-1 border-0 bg-transparent py-1 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
-            />
+          <div className="hidden sm:block rounded-2xl bg-[var(--green-200)] px-4 py-3 text-right text-sm font-semibold text-[var(--green-900)]">
+            Fresh &amp; green
+            <div className="text-xs text-[var(--muted-400)]">Meal-prep lab</div>
           </div>
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex items-center rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60"
+
+        <form
+          className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center"
+          onSubmit={onSubmit}
         >
-          {loading ? "Searching…" : "Search"}
-        </button>
-      </form>
+          <label htmlFor="ingredient-search" className="sr-only">
+            Search ingredients
+          </label>
+          <div
+            className="search-shell flex-1 flex-wrap"
+            onClick={() => inputRef.current?.focus()}
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--sand-100)] text-[var(--ink-700)]">
+              <MagnifyingGlassIcon className="h-5 w-5" />
+            </div>
+            <div className="flex flex-1 flex-wrap items-center gap-2">
+              {ingredients.map((ingredient) => (
+                <span key={ingredient} className="tag-badge">
+                  {ingredient}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveIngredient(ingredient)}
+                    className="text-[var(--muted-400)] transition hover:text-[var(--ink-700)]"
+                  >
+                    <span className="sr-only">Remove {ingredient}</span>
+                    &times;
+                  </button>
+                </span>
+              ))}
+              <input
+                id="ingredient-search"
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={handleInputChange}
+                onBlur={handleInputBlur}
+                onKeyDown={handleInputKeyDown}
+                placeholder={
+                  ingredients.length === 0
+                    ? "Find your food here…"
+                    : "Add more ingredients"
+                }
+                className="search-input min-w-[140px]"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary"
+            >
+              {loading ? "Searching…" : "Search"}
+            </button>
+          </div>
+        </form>
+
+        <div className="pill-scroll mt-4">
+          {quickFilters.map((filter) => (
+            <button
+              key={filter.label}
+              type="button"
+              className={cx(
+                "chip text-sm",
+                quickSelected === filter.label.toLowerCase() ? "active" : ""
+              )}
+              onClick={() => handleQuickFilter(filter.label)}
+            >
+              <span className="text-lg" aria-hidden>
+                {filter.emoji}
+              </span>
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {error && (
-        <div className="mx-auto mt-4 max-w-xl rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="glass-card mx-auto max-w-3xl rounded-xl border border-red-200 bg-red-50/80 p-4 text-sm text-red-800">
           {error.message}
         </div>
       )}
 
       {!loading && hasSearched && items.length === 0 && (
-        <p className="mx-auto mt-6 max-w-xl text-sm text-gray-500">
-          No recipes found. Try different ingredients.
+        <p className="mx-auto mt-2 max-w-3xl text-sm font-semibold text-[var(--ink-700)]">
+          No recipes found. Try another ingredient or category.
         </p>
       )}
 
       {!loading && hasSearched && items.length > 0 && (
-        <p className="mx-auto mt-6 max-w-5xl text-xs uppercase tracking-wide text-gray-500">
+        <p className="mx-auto mt-1 max-w-5xl text-xs uppercase tracking-wide text-[var(--muted-400)]">
           Showing {startIndex}-{Math.min(endIndex, displayTotal)} of{" "}
           {displayTotal} recipes
         </p>

@@ -14,7 +14,7 @@ export default function AddToFavouritesButton({ recipe }) {
     return favouritesItems.some((item) => item.id === recipe.id);
   }, [favouritesItems, recipe?.id]);
 
-  async function addTofavouritesHandler(event) {
+  async function addTofavouritesHandler() {
     if (!recipe?.id) return;
     setFavouritesError("");
 

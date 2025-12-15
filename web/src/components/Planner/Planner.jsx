@@ -53,7 +53,7 @@ export default function Planner() {
           });
           return next;
         });
-      } catch (err) {
+      } catch {
         if (!cancelled) setRecipeError("Failed to load recipe details.");
       } finally {
         if (!cancelled) setRecipesLoading(false);
