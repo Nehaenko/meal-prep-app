@@ -4,35 +4,37 @@ import AddToFavouritesButton from "../ActionElements/AddToFavouritesButton";
 
 export default function FavouriteCard({ recipe }) {
   return (
-    <div className="flex flex-col gap-3 rounded border p-3 shadow-sm">
+    <div className="meal-card">
+      <AddToFavouritesButton recipe={recipe} />
       <Link
         to={`/recipe/${recipe.id}`}
         state={{ results: recipe }}
-        className="flex items-start gap-3"
+        className="block"
       >
         {recipe?.image && (
-          <img
-            src={recipe.image}
-            alt={recipe.title}
-            className="h-16 w-16 rounded object-cover"
-          />
+          <div className="meal-card-media">
+            <img
+              src={recipe.image}
+              alt={recipe.title}
+              className="meal-card-image"
+            />
+          </div>
         )}
-        <div className="flex-1">
-          <p className="font-semibold">{recipe.title}</p>
+        <div className="meal-card-body">
+          <p className="meal-card-title">{recipe.title}</p>
           {recipe?.summary && (
-            <p className="text-sm text-gray-700 line-clamp-2">
+            <p className="meal-card-summary line-clamp-2">
               {recipe.summary}
             </p>
           )}
-          <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-gray-500">
+          <div className="meal-card-meta">
             {recipe?.timeMinutes != null && <span>{recipe.timeMinutes} min</span>}
             {recipe?.calories != null && <span>{recipe.calories} cal</span>}
           </div>
         </div>
       </Link>
-      <div className="flex flex-wrap gap-2">
+      <div className="meal-card-actions">
         <AddToPlannerButton recipe={recipe} />
-        <AddToFavouritesButton recipe={recipe} />
       </div>
     </div>
   );

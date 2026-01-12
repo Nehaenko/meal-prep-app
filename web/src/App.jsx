@@ -15,16 +15,16 @@ function App() {
   const { isLoading: uiLoading } = useLoading();
 
   return (
-    <>
+    <div className="app-shell">
       {!online && <ErrorBanner />}
       {(loading || uiLoading) && <Loader />}
       <Header />
-      <div className="h-screen">
+      <main className="mx-auto max-w-6xl px-4 pb-36 pt-4 sm:pt-6">
         <AppRoutes />
-      </div>
+      </main>
       {/* <ShoppingListsDock />
       <PrepStepsList /> */}
-    </>
+    </div>
   );
 }
 

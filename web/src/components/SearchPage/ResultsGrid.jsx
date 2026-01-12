@@ -5,34 +5,34 @@ import AddToFavouritesButton from "../ActionElements/AddToFavouritesButton";
 export default function ResultsGrid({ items }) {
   return (
     <>
-      <div className="mx-auto mt-3 grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto mt-3 max-w-5xl meal-grid">
         {items.map((results) => (
-          <div
-            key={results.id}
-            className="overflow-hidden rounded-lg border bg-white shadow-sm"
-          >
+          <div key={results.id} className="meal-card">
+            <AddToFavouritesButton recipe={results} />
             <Link
               to={`/recipe/${results.id}`}
               state={{ results }}
               className="block"
             >
               {results.image && (
-                <img
-                  src={results.image}
-                  alt={results.title}
-                  className="h-40 w-full object-cover"
-                />
+                <div className="meal-card-media">
+                  <img
+                    src={results.image}
+                    alt={results.title}
+                    className="meal-card-image"
+                  />
+                </div>
               )}
-              <div className="p-3">
-                <h3 className="line-clamp-2 text-sm font-medium">
+              <div className="meal-card-body">
+                <h3 className="meal-card-title line-clamp-2">
                   {results.title}
                 </h3>
                 {results.summary && (
-                  <p className="mt-2 line-clamp-3 text-xs text-gray-600">
+                  <p className="meal-card-summary line-clamp-3">
                     {results.summary}
                   </p>
                 )}
-                <div className="mt-3 flex flex-wrap gap-x-3 text-xs text-gray-500">
+                <div className="meal-card-meta">
                   {results.timeMinutes != null && (
                     <span>~{results.timeMinutes} min</span>
                   )}
@@ -42,12 +42,8 @@ export default function ResultsGrid({ items }) {
                 </div>
               </div>
             </Link>
-
-            <div className="flex flex-col p-3 gap-2 border-t bg-gray-50">
+            <div className="meal-card-actions">
               <AddToPlannerButton recipe={results} />
-            </div>
-            <div className="flex flex-col p-3 gap-2 border-t bg-gray-50">
-              <AddToFavouritesButton recipe={results} />
             </div>
           </div>
         ))}

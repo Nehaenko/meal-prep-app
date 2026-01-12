@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { IoTrashSharp } from "react-icons/io5";
 import { usePlanner } from "../../state/PlannerContext";
 import AddToFavouritesButton from "../ActionElements/AddToFavouritesButton";
 
@@ -21,50 +22,72 @@ export default function PlannerCart({
   }
 
   return (
-    <>
+    <div className="meal-grid">
       {itemsWithRecipe.map(({ item, recipe }) => (
-        <div
-          key={item.id}
-          className="flex items-center gap-3 rounded border p-3"
-        >
-          <div className="flex items-center">
-            <input
-              id={`select-${item.id}`}
-              type="checkbox"
-              checked={selectedIds.has(item.recipeId)}
-              onChange={(e) => toggleSelection(item.recipeId, e.target.checked)}
-              onClick={(e) => e.stopPropagation()}
-              className="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
-            />
-          </div>
+        <div key={item.id} className="meal-card">
+          <AddToFavouritesButton recipe={recipe} />
           <Link
             to={`/recipe/${item.recipeId}`}
             state={recipe ? { results: recipe } : undefined}
-            className="flex flex-1 items-center gap-3"
+            className="block"
           >
             {recipe?.image && (
-              <img
-                src={recipe.image}
-                alt={recipe.title}
-                className="h-16 w-16 rounded object-cover"
-              />
+              <div className="meal-card-media">
+                <img
+                  src={recipe.image}
+                  alt={recipe.title}
+                  className="meal-card-image"
+                />
+              </div>
             )}
-            <div className="flex-1">
-              <p className="font-semibold">{recipe?.title ?? item.recipeId}</p>
+            <div className="meal-card-body">
+              <p className="meal-card-title">
+                {recipe?.title ?? item.recipeId}
+              </p>
               {recipe?.summary && (
-                <p className="text-sm text-gray-700">{recipe.summary}</p>
+                <p className="meal-card-summary line-clamp-2">
+                  {recipe.summary}
+                </p>
               )}
-              <p className="text-sm text-gray-600">Servings: {item.servings}</p>
-              <p className="text-xs text-gray-500">Added: {item.createdAt}</p>
+              <div className="meal-card-meta">
+                <span>Servings: {item.servings}</span>
+                {recipe?.timeMinutes != null && (
+                  <span>{recipe.timeMinutes} min</span>
+                )}
+                {recipe?.calories != null && <span>{recipe.calories} cal</span>}
+              </div>
+              <div className="meal-card-meta">
+                <span>Added: {item.createdAt}</span>
+              </div>
             </div>
           </Link>
-          <button onClick={() => removeFromPlannerHandler(recipe.id)}>
-            Remove from planner
-          </button>
-          <AddToFavouritesButton recipe={recipe} />
-          {plannerError ? plannerError : ""}
+          <div className="meal-card-actions">
+            <label className="meal-card-select">
+              <input
+                id={`select-${item.id}`}
+                type="checkbox"
+                checked={selectedIds.has(item.recipeId)}
+                onChange={(e) =>
+                  toggleSelection(item.recipeId, e.target.checked)
+                }
+                onClick={(e) => e.stopPropagation()}
+              />
+              Use in prep plan
+            </label>
+            <button
+              type="button"
+              onClick={() => removeFromPlannerHandler(item.recipeId)}
+              className="meal-icon-btn"
+              aria-label="Remove from planner"
+            >
+              <IoTrashSharp className="h-5 w-5" />
+            </button>
+          </div>
+          {plannerError ? (
+            <p className="px-4 pb-4 text-xs text-red-600">{plannerError}</p>
+          ) : null}
         </div>
       ))}
-    </>
+    </div>
   );
 }

@@ -53,7 +53,7 @@ export default function Planner() {
           });
           return next;
         });
-      } catch (err) {
+      } catch {
         if (!cancelled) setRecipeError("Failed to load recipe details.");
       } finally {
         if (!cancelled) setRecipesLoading(false);
@@ -123,17 +123,18 @@ export default function Planner() {
     <>
       {loading && <p>Loading planner...</p>}
       {plannerCount === 0 && !loading && (
-        <p data-testid="planner_empty">Planner is empty</p>
+        <p data-testid="planner_empty" className="empty-state">
+          Your planner is empty.
+        </p>
       )}
       {plannerCount > 0 && (
         <div className="space-y-2">
           <button
             onClick={clearHandler}
             data-testid="clear_planner"
-            className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+            className="btn btn-soft"
           >
-            Clear planner
+            Reset planner
           </button>
           <PlannerCart
             itemsWithRecipe={itemsWithRecipe}
@@ -142,21 +143,15 @@ export default function Planner() {
           />
           {recipesLoading && <p>Loading recipe details…</p>}
           {recipeError && <p className="text-red-600 text-sm">{recipeError}</p>}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 mt-4">
             <button
               onClick={handleGeneratePrepPlan}
               disabled={prepLoading || selectedList.length === 0}
-              className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+              className="btn btn-primary"
             >
               {prepLoading ? "Generating..." : "Generate prep steps"}
             </button>
-            <button
-              className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
-            >
-              Generate shopping list
-            </button>
+            <button className="btn btn-soft">Generate shopping list</button>
           </div>
           <PrepStepsList
             prepSteps={prepSteps}
