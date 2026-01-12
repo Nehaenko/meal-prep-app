@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client/react";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useLoading } from "../../state/LoadingContext";
 import { SearchRecipes } from "../../graphql";
 import ResultsGrid from "./ResultsGrid";
@@ -9,12 +8,12 @@ import SearchPagination from "./Pagination";
 
 const PAGE_SIZE = 10;
 const quickFilters = [
-  { label: "Foods", emoji: "🥗" },
-  { label: "Fruits", emoji: "🍓" },
-  { label: "Juices", emoji: "🧃" },
-  { label: "Vegetables", emoji: "🥬" },
-  { label: "Meat", emoji: "🍗" },
-  { label: "Dessert", emoji: "🍨" },
+  { label: "Chicken", value: "chicken", emoji: "🍗" },
+  { label: "Salmon", value: "salmon", emoji: "🐟" },
+  { label: "Beef", value: "beef", emoji: "🥩" },
+  { label: "Rice", value: "rice", emoji: "🍚" },
+  { label: "Broccoli", value: "broccoli", emoji: "🥦" },
+  { label: "Egg", value: "egg", emoji: "🍳" },
 ];
 const cx = (...c) => c.filter(Boolean).join(" ");
 
@@ -151,8 +150,8 @@ export default function SearchPage() {
 
   const quickSelected = useMemo(() => ingredients[0], [ingredients]);
 
-  function handleQuickFilter(label) {
-    const token = label.toLowerCase();
+  function handleQuickFilter(value) {
+    const token = value.toLowerCase();
     setIngredients([token]);
     setInputValue("");
     executeSearch([token], 1);
@@ -166,9 +165,6 @@ export default function SearchPage() {
             <p className="text-sm font-semibold uppercase tracking-wide text-[var(--green-700)]">
               Hello foodie 👋
             </p>
-            <h1 className="text-3xl font-extrabold text-[var(--ink-900)]">
-              Let&apos;s eat.
-            </h1>
             <p className="text-[var(--muted-400)] font-medium">
               Nutritious food at your fingertips.
             </p>
@@ -190,9 +186,6 @@ export default function SearchPage() {
             className="search-shell flex-1 flex-wrap"
             onClick={() => inputRef.current?.focus()}
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--sand-100)] text-[var(--ink-700)]">
-              <MagnifyingGlassIcon className="h-5 w-5" />
-            </div>
             <div className="flex flex-1 flex-wrap items-center gap-2">
               {ingredients.map((ingredient) => (
                 <span key={ingredient} className="tag-badge">
@@ -240,9 +233,9 @@ export default function SearchPage() {
               type="button"
               className={cx(
                 "chip text-sm",
-                quickSelected === filter.label.toLowerCase() ? "active" : ""
+                quickSelected === filter.value ? "active" : ""
               )}
-              onClick={() => handleQuickFilter(filter.label)}
+              onClick={() => handleQuickFilter(filter.value)}
             >
               <span className="text-lg" aria-hidden>
                 {filter.emoji}
@@ -266,7 +259,7 @@ export default function SearchPage() {
       )}
 
       {!loading && hasSearched && items.length > 0 && (
-        <p className="mx-auto mt-1 max-w-5xl text-xs uppercase tracking-wide text-[var(--muted-400)]">
+        <p className="mx-auto mt-1 max-w-5xl text-xs uppercase tracking-wide text-[var(--ink-700)]">
           Showing {startIndex}-{Math.min(endIndex, displayTotal)} of{" "}
           {displayTotal} recipes
         </p>

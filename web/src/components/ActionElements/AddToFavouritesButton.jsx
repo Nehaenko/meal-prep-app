@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { IoHeartOutline, IoHeartSharp } from "react-icons/io5";
 import { useFavourites } from "../../state/FavouriesContext";
 
 export default function AddToFavouritesButton({ recipe }) {
@@ -14,7 +15,9 @@ export default function AddToFavouritesButton({ recipe }) {
     return favouritesItems.some((item) => item.id === recipe.id);
   }, [favouritesItems, recipe?.id]);
 
-  async function addTofavouritesHandler() {
+  async function addTofavouritesHandler(event) {
+    event.preventDefault();
+    event.stopPropagation();
     if (!recipe?.id) return;
     setFavouritesError("");
 
@@ -32,14 +35,16 @@ export default function AddToFavouritesButton({ recipe }) {
       <button
         onClick={addTofavouritesHandler}
         disabled={favouritesLoading}
-        className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+        className="meal-fav-btn"
+        aria-label={
+          isFavourite ? "Remove from favourites" : "Add to favourites"
+        }
       >
-        {favouritesLoading
-          ? "Adding..."
-          : isFavourite
-          ? "Remove from Favourites"
-          : "Add to Favourites"}
+        {isFavourite ? (
+          <IoHeartSharp className="h-5 w-5 text-[var(--green-700)]" />
+        ) : (
+          <IoHeartOutline className="h-5 w-5" />
+        )}
       </button>
     </>
   );

@@ -6,6 +6,7 @@ import { LoadingProvider } from "./state/LoadingContext.jsx";
 import { PlannerProvider } from "./state/PlannerContext.jsx";
 import { FavouritesProvider } from "./state/FavouriesContext.jsx";
 import { BrowserRouter } from "react-router";
+import "animate.css";
 import "./index.css";
 import App from "./App.jsx";
 

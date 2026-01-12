@@ -19,7 +19,7 @@ function App() {
       {!online && <ErrorBanner />}
       {(loading || uiLoading) && <Loader />}
       <Header />
-      <main className="mx-auto max-w-6xl px-4 pb-28 pt-4 sm:pt-6">
+      <main className="mx-auto max-w-6xl px-4 pb-36 pt-4 sm:pt-6">
         <AppRoutes />
       </main>
       {/* <ShoppingListsDock />

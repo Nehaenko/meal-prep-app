@@ -10,9 +10,9 @@ import {
   CalendarDaysIcon,
   HeartIcon,
   MagnifyingGlassIcon,
-  Squares2X2Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { IoAddOutline } from "react-icons/io5";
 import AuthModal from "./Auth/AuthModal";
 import { useAuth } from "../state/AuthContext";
 import { usePlanner } from "../state/PlannerContext";
@@ -35,10 +35,10 @@ function hashString(str) {
 function getAnimalAvatar(seed) {
   const animals = ["🦊", "🦁", "🦉", "🐢", "🐻", "🐰", "🦔", "🦜", "🦄"];
   const colors = [
-    "linear-gradient(135deg, #1f7a46, #2eb872)",
-    "linear-gradient(135deg, #165b3a, #1f7a46)",
-    "linear-gradient(135deg, #0f3b2e, #2eb872)",
-    "linear-gradient(135deg, #1f3326, #2eb872)",
+    "linear-gradient(145deg, #d9f2e4, #bfe9d4)",
+    "linear-gradient(145deg, #d9f2e4, #c7ecd8)",
+    "linear-gradient(145deg, #d9f2e4, #cfeede)",
+    "linear-gradient(145deg, #d9f2e4, #bfe9d4)",
   ];
   const hash = hashString(seed || "guest");
   return {
@@ -106,7 +106,9 @@ function BottomNav({ avatar, onAvatar, plannerCount, favouritesCount }) {
             className={({ isActive }) =>
               cx(
                 "flex h-10 w-10 items-center justify-center rounded-full transition",
-                isActive ? "bg-[var(--green-200)] text-[var(--green-900)]" : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+                isActive
+                  ? "bg-[var(--green-200)] text-[var(--green-900)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
               )
             }
             aria-label="Search"
@@ -118,7 +120,9 @@ function BottomNav({ avatar, onAvatar, plannerCount, favouritesCount }) {
             className={({ isActive }) =>
               cx(
                 "relative flex h-10 w-10 items-center justify-center rounded-full transition",
-                isActive ? "bg-[var(--green-200)] text-[var(--green-900)]" : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+                isActive
+                  ? "bg-[var(--green-200)] text-[var(--green-900)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
               )
             }
             aria-label="Planner"
@@ -136,7 +140,9 @@ function BottomNav({ avatar, onAvatar, plannerCount, favouritesCount }) {
             className={({ isActive }) =>
               cx(
                 "relative flex h-10 w-10 items-center justify-center rounded-full transition",
-                isActive ? "bg-[var(--green-200)] text-[var(--green-900)]" : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+                isActive
+                  ? "bg-[var(--green-200)] text-[var(--green-900)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
               )
             }
             aria-label="Favourites"
@@ -153,23 +159,10 @@ function BottomNav({ avatar, onAvatar, plannerCount, favouritesCount }) {
         <NavLink
           to="/"
           aria-label="Add meal"
-          className="absolute inset-x-0 -top-7 flex justify-center"
+          className="absolute left-1/2 -top-7 -translate-x-1/2"
         >
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--green-700)] text-white shadow-[0_12px_40px_rgba(31,122,70,0.35)] transition hover:translate-y-[-2px]">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="h-7 w-7"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8 4v8m0 8V12m0 0H4m4 0h4m4-8v4m0 8V8m0 0h-4m4 0h4"
-              />
-            </svg>
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--green-700)] text-white shadow-[0_12px_40px_rgba(31,122,70,0.35)] relative left-2 top-2">
+            <IoAddOutline className="h-8 w-8" />
           </div>
         </NavLink>
       </div>
@@ -193,32 +186,52 @@ export default function Header() {
   return (
     <header className="relative z-30 mb-4">
       <div className="mx-auto max-w-6xl px-4">
-        <div className="flex items-center justify-between rounded-2xl bg-white/90 px-3 py-3 shadow-lg ring-1 ring-black/5 backdrop-blur">
-          <button
-            type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[var(--ink-900)] hover:bg-[var(--sand-100)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--green-500)]"
-            onClick={() => setSheetOpen(true)}
-            aria-label="Open navigation"
-          >
-            <Bars3Icon className="h-6 w-6" />
-          </button>
+        <div className="flex items-center rounded-2xl bg-white/90 px-3 py-3 shadow-lg ring-1 ring-black/5 backdrop-blur mt-4">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[var(--ink-900)] hover:bg-[var(--sand-100)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--green-500)]"
+              onClick={() => setSheetOpen(true)}
+              aria-label="Open navigation"
+            >
+              <Bars3Icon className="h-6 w-6" />
+            </button>
 
-          <div className="text-left">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--green-700)]">
-              Meal Prep
-            </p>
-            <p className="text-xl font-extrabold text-[var(--ink-900)] leading-tight">
-              Let&apos;s eat better.
-            </p>
-            <p className="text-sm font-medium text-[var(--muted-400)]">
-              Nutritious food, easy search.
-            </p>
+            <div className="flex items-center gap-3 text-left">
+              <svg
+                viewBox="0 0 512 512"
+                className="h-9 w-9"
+                aria-hidden="true"
+              >
+                <defs>
+                  <linearGradient id="meal-logo-gradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="var(--green-700)" />
+                    <stop offset="100%" stopColor="var(--green-500)" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M479.55 96h-91.06l8.92-35.66 38.32-13.05c8.15-2.77 13-11.43 10.65-19.71a16 16 0 0 0-20.54-10.73l-47 16a16 16 0 0 0-10.36 11.27L355.51 96H224.45c-8.61 0-16 6.62-16.43 15.23A16 16 0 0 0 224 128h2.75l1 8.66A8.3 8.3 0 0 0 236 144c39 0 73.66 10.9 100.12 31.52A121.9 121.9 0 0 1 371 218.07a123.4 123.4 0 0 1 10.12 29.51 7.83 7.83 0 0 0 3.29 4.88 72 72 0 0 1 26.38 86.43 7.92 7.92 0 0 0-.15 5.53A96 96 0 0 1 416 376c0 22.34-7.6 43.63-21.4 59.95a80.12 80.12 0 0 1-28.78 21.67 8 8 0 0 0-4.21 4.37 108.19 108.19 0 0 1-17.37 29.86 2.5 2.5 0 0 0 1.9 4.11h49.21a48.22 48.22 0 0 0 47.85-44.14L477.4 128h2.6a16 16 0 0 0 16-16.77c-.42-8.61-7.84-15.23-16.45-15.23z"
+                  fill="url(#meal-logo-gradient)"
+                />
+                <path
+                  d="M108.69 320a23.87 23.87 0 0 1 17 7l15.51 15.51a4 4 0 0 0 5.66 0L162.34 327a23.87 23.87 0 0 1 17-7h196.58a8 8 0 0 0 8.08-7.92V312a40.07 40.07 0 0 0-32-39.2c-.82-29.69-13-54.54-35.51-72C295.67 184.56 267.85 176 236 176h-72c-68.22 0-114.43 38.77-116 96.8A40.07 40.07 0 0 0 16 312a8 8 0 0 0 8 8zm77.25 32a8 8 0 0 0-5.66 2.34l-22.14 22.15a20 20 0 0 1-28.28 0l-22.14-22.15a8 8 0 0 0-5.66-2.34h-69.4a15.93 15.93 0 0 0-15.76 13.17A65.22 65.22 0 0 0 16 376c0 30.59 21.13 55.51 47.26 56 2.43 15.12 8.31 28.78 17.16 39.47C93.51 487.28 112.54 496 134 496h132c21.46 0 40.49-8.72 53.58-24.55 8.85-10.69 14.73-24.35 17.16-39.47 26.13-.47 47.26-25.39 47.26-56a65.22 65.22 0 0 0-.9-10.83A15.93 15.93 0 0 0 367.34 352z"
+                  fill="url(#meal-logo-gradient)"
+                />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-[var(--muted-400)]">
+                  Plan meals with ease!
+                </p>
+              </div>
+            </div>
           </div>
 
-          <AvatarBadge avatar={avatar} onClick={() => setSheetOpen(true)} />
+          <div className="ml-auto">
+            <AvatarBadge avatar={avatar} onClick={() => setSheetOpen(true)} />
+          </div>
         </div>
 
-        <div className="mt-3 hidden gap-2 sm:flex">
+        <div className="mt-5 hidden gap-2 sm:flex">
           {nav.map((item) => (
             <NavPill
               key={item.name}
@@ -256,9 +269,15 @@ export default function Header() {
         onClose={() => setSheetOpen(false)}
         className="relative z-50"
       >
-        <DialogBackdrop className="fixed inset-0 bg-black/25 backdrop-blur-sm" />
+        <DialogBackdrop
+          transition
+          className="fixed inset-0 bg-black/25 backdrop-blur-sm transition-opacity duration-150 data-[closed]:opacity-0"
+        />
         <div className="fixed inset-0 flex justify-start">
-          <DialogPanel className="relative h-full w-80 max-w-[80vw] rounded-r-3xl bg-white/95 px-5 py-6 shadow-2xl ring-1 ring-black/5 backdrop-blur">
+          <DialogPanel
+            transition
+            className="relative h-full w-80 max-w-[80vw] rounded-r-3xl bg-white/95 px-5 py-6 shadow-2xl ring-1 ring-black/5 backdrop-blur transition duration-150 ease-out data-[closed]:opacity-0 data-[closed]:-translate-x-3 data-[closed]:ease-in data-[closed]:duration-100"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <AvatarBadge avatar={avatar} size="lg" />
@@ -313,13 +332,6 @@ export default function Header() {
             </div>
 
             <div className="mt-6 border-t border-[var(--sand-100)] pt-4 space-y-2">
-              <button
-                type="button"
-                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[var(--ink-700)] transition hover:bg-[var(--sand-100)]"
-              >
-                <Squares2X2Icon className="h-5 w-5" />
-                <span>Discover categories</span>
-              </button>
               {user ? (
                 <button
                   type="button"

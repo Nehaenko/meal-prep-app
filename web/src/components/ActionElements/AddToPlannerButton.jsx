@@ -50,8 +50,7 @@ export default function AddToPlannerButton({ recipe }) {
       <button
         onClick={addToPlannerHandler}
         disabled={plannerLoading}
-        className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
+        className="meal-action meal-action--primary"
       >
         {plannerLoading
           ? "Updating..."

@@ -41,42 +41,71 @@ export default function MealPage() {
   const steps = recipe?.steps ?? [];
 
   return (
-    <div className="container m-auto">
-      <h2>{recipe.title}</h2>
-      <div className="flex gap-3">
+    <div className="meal-detail-shell">
+      <section className="meal-hero">
+        <AddToFavouritesButton recipe={recipe} />
         {recipe.image && (
-          <img className="w-52 h-52" src={recipe.image} alt={recipe.title} />
+          <img
+            className="meal-hero-image"
+            src={recipe.image}
+            alt={recipe.title}
+          />
         )}
-        <div>
+      </section>
+
+      <section className="meal-detail-card">
+        <h2 className="meal-detail-title">{recipe.title}</h2>
+        {recipe.summary && (
+          <p className="meal-detail-summary">{recipe.summary}</p>
+        )}
+
+        <div className="meal-detail-meta">
+          <div className="meal-detail-stat">
+            <p>Time</p>
+            <span>
+              {recipe.timeMinutes != null ? `${recipe.timeMinutes} min` : "—"}
+            </span>
+          </div>
+          <div className="meal-detail-stat">
+            <p>Calories</p>
+            <span>{recipe.calories != null ? `${recipe.calories} cal` : "—"}</span>
+          </div>
+          <div className="meal-detail-stat">
+            <p>Ingredients</p>
+            <span>{ingredients.length}</span>
+          </div>
+        </div>
+
+        <div className="meal-detail-section">
           <h3>Ingredients</h3>
-          <ul>
+          <ul className="meal-detail-list">
             {ingredients.map((ingredient, index) => (
               <li key={index}>{ingredient}</li>
             ))}
           </ul>
         </div>
-      </div>
-      <h3>Steps</h3>
-      <ol>
-        {steps.map((step, index) => (
-          <li key={index}>{step}</li>
-        ))}
-      </ol>
-      {recipe.source && (
-        <p>
-          Source: <span>{recipe.source}</span>
-        </p>
-      )}
-      <div className="flex flex-col p-3 gap-2">
-        <AddToPlannerButton recipe={recipe} />
-        <AddToFavouritesButton recipe={recipe} />
-        <button
-          className="rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white
-                     shadow-sm hover:bg-gray-900 disabled:opacity-60 cursor-pointer"
-        >
-          Add to Shopping List
-        </button>
-      </div>
+
+        <div className="meal-detail-section">
+          <h3>Steps</h3>
+          <ol className="meal-detail-list meal-detail-steps">
+            {steps.map((step, index) => (
+              <li key={index}>{step}</li>
+            ))}
+          </ol>
+        </div>
+
+        {recipe.source && (
+          <div className="meal-detail-section">
+            <h3>Source</h3>
+            <p className="meal-detail-summary">{recipe.source}</p>
+          </div>
+        )}
+
+        <div className="meal-detail-actions">
+          <AddToPlannerButton recipe={recipe} />
+          <button className="btn btn-ghost">Add to Shopping List</button>
+        </div>
+      </section>
     </div>
   );
 }
