@@ -8,6 +8,8 @@ export default function PlannerCart({
   itemsWithRecipe,
   selectedIds,
   toggleSelection,
+  selectedShoppingIds,
+  toggleShoppingSelection,
 }) {
   const { removeFromPlanner } = usePlanner();
   const [plannerError, setPlannerError] = useState("");
@@ -73,6 +75,18 @@ export default function PlannerCart({
                 onClick={(e) => e.stopPropagation()}
               />
               Use in prep plan
+            </label>
+            <label className="meal-card-select">
+              <input
+                id={`select-shopping-${item.id}`}
+                type="checkbox"
+                checked={selectedShoppingIds.has(item.recipeId)}
+                onChange={(e) =>
+                  toggleShoppingSelection(item.recipeId, e.target.checked)
+                }
+                onClick={(e) => e.stopPropagation()}
+              />
+              Use in shopping list
             </label>
             <button
               type="button"

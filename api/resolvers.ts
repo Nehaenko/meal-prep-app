@@ -6,6 +6,138 @@ import { GraphQLError } from "graphql";
 
 const EMAIL_IN_USE = "Email already in use";
 const BAD_CREDENTIALS = "Invalid email or password";
+const MANUAL_RECIPE_ID = "manual";
+const MANUAL_LIST_TITLE = "Manual items";
+
+type ParsedShoppingItem = {
+  name: string;
+  quantity?: number;
+  unit?: string;
+};
+
+const UNIT_CANDIDATES = [
+  "tablespoons",
+  "tablespoon",
+  "teaspoons",
+  "teaspoon",
+  "tbsp",
+  "tsp",
+  "ounces",
+  "ounce",
+  "oz",
+  "pounds",
+  "pound",
+  "lbs",
+  "lb",
+  "kilograms",
+  "kilogram",
+  "kg",
+  "grams",
+  "gram",
+  "g",
+  "milliliters",
+  "milliliter",
+  "ml",
+  "liters",
+  "liter",
+  "l",
+  "cups",
+  "cup",
+  "cloves",
+  "clove",
+  "slices",
+  "slice",
+  "pieces",
+  "piece",
+  "pinches",
+  "pinch",
+  "dashes",
+  "dash",
+  "cans",
+  "can",
+  "packages",
+  "package",
+  "packets",
+  "packet",
+  "sticks",
+  "stick",
+  "bunches",
+  "bunch",
+  "sprigs",
+  "sprig",
+  "heads",
+  "head",
+  "fillets",
+  "fillet",
+  "to taste",
+  "as needed",
+].sort((a, b) => b.length - a.length);
+
+function parseQuantity(input: string): { quantity?: number; rest: string } {
+  const str = input.trim();
+  if (!str) return { rest: "" };
+
+  const mixed = str.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)/);
+  if (mixed) {
+    const whole = Number(mixed[1]);
+    const num = Number(mixed[2]);
+    const den = Number(mixed[3]);
+    if (Number.isFinite(whole) && Number.isFinite(num) && Number.isFinite(den) && den) {
+      return {
+        quantity: whole + num / den,
+        rest: str.slice(mixed[0].length).trim(),
+      };
+    }
+  }
+
+  const fraction = str.match(/^(\d+)\s*\/\s*(\d+)/);
+  if (fraction) {
+    const num = Number(fraction[1]);
+    const den = Number(fraction[2]);
+    if (Number.isFinite(num) && Number.isFinite(den) && den) {
+      return { quantity: num / den, rest: str.slice(fraction[0].length).trim() };
+    }
+  }
+
+  const decimal = str.match(/^(\d+(?:\.\d+)?)/);
+  if (decimal) {
+    const value = Number(decimal[1]);
+    if (Number.isFinite(value)) {
+      return { quantity: value, rest: str.slice(decimal[0].length).trim() };
+    }
+  }
+
+  return { rest: str };
+}
+
+function parseIngredientLine(line: string): ParsedShoppingItem {
+  const raw = (line ?? "").trim();
+  if (!raw) return { name: "" };
+
+  const { quantity, rest } = parseQuantity(raw);
+  const restLower = rest.toLowerCase();
+
+  let unit: string | undefined;
+  let name = rest;
+
+  for (const candidate of UNIT_CANDIDATES) {
+    if (
+      restLower === candidate ||
+      restLower.startsWith(`${candidate} `)
+    ) {
+      unit = candidate;
+      name = rest.slice(candidate.length).trim();
+      break;
+    }
+  }
+
+  const fallbackName = name?.trim() || raw;
+  return {
+    name: fallbackName,
+    quantity: quantity ?? undefined,
+    unit: unit || undefined,
+  };
+}
 
 export const resolvers = {
   // ---------- QUERIES ----------
@@ -165,6 +297,20 @@ export const resolvers = {
 
     createShoppingList: async (_: any, { recipeId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
+      const existing = await ctx.repos.shoppingLists.findByRecipeId(
+        ctx.user.id,
+        recipeId
+      );
+      if (existing) return existing;
+
+      if (recipeId === MANUAL_RECIPE_ID) {
+        return ctx.repos.shoppingLists.create(ctx.user.id, {
+          recipeId,
+          title: MANUAL_LIST_TITLE,
+          items: [],
+        });
+      }
+
       const recipe =
         (await ctx.repos.recipesCache.get(recipeId)) ||
         (await meals.getRecipeById(recipeId));
@@ -172,7 +318,7 @@ export const resolvers = {
       return ctx.repos.shoppingLists.create(ctx.user.id, {
         recipeId,
         title: recipe.title,
-        items: recipe.ingredients.map((n: string) => ({ name: n })),
+        items: recipe.ingredients.map((line: string) => parseIngredientLine(line)),
       });
     },
 
@@ -184,6 +330,11 @@ export const resolvers = {
     deleteShoppingList: async (_: any, { listId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.shoppingLists.delete(ctx.user.id, listId);
+    },
+
+    clearShoppingLists: async (_: any, __: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      return ctx.repos.shoppingLists.clear(ctx.user.id);
     },
 
     generatePrepPlan: async (_: any, { recipeIds }: any, ctx: any) => {

@@ -21,6 +21,12 @@ const client = new ApolloClient({
               return incoming;
             },
           },
+          shoppingLists: {
+            // Replace shopping lists as a whole to avoid merge warnings.
+            merge(_, incoming) {
+              return incoming;
+            },
+          },
         },
       },
     },

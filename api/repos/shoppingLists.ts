@@ -7,6 +7,7 @@ export type ShoppingItem = {
   quantity?: number;
   unit?: string;
   substitutes?: string[];
+  note?: string;
 };
 
 export type ShoppingList = {
@@ -21,7 +22,11 @@ export type ShoppingList = {
 function normalizeItems(items: ShoppingItem[]): ShoppingItem[] {
   return (items ?? [])
     .filter((i) => i?.name?.trim())
-    .map((i) => ({ ...i, name: i.name.trim().toLowerCase() }));
+    .map((i) => ({
+      ...i,
+      name: i.name.trim().toLowerCase(),
+      note: i.note?.trim() || undefined,
+    }));
 }
 
 export function createShoppingListsRepo(db: Db) {
@@ -32,6 +37,13 @@ export function createShoppingListsRepo(db: Db) {
   col.createIndex({ userId: 1, createdAt: -1 }).catch(() => {});
 
   return {
+    async findByRecipeId(
+      userId: string,
+      recipeId: string
+    ): Promise<ShoppingList | null> {
+      return col.findOne({ userId, recipeId });
+    },
+
     async create(
       userId: string,
       data: { recipeId: string; title: string; items?: ShoppingItem[] }
@@ -69,6 +81,11 @@ export function createShoppingListsRepo(db: Db) {
 
     async delete(userId: string, listId: string): Promise<boolean> {
       await col.deleteOne({ userId, id: listId });
+      return true;
+    },
+
+    async clear(userId: string): Promise<boolean> {
+      await col.deleteMany({ userId });
       return true;
     },
 
