@@ -126,3 +126,69 @@ export const ToggleFavorite = gql`
     toggleFavorite(recipeId: $recipeId)
   }
 `;
+
+export const ShoppingLists = gql`
+  query ShoppingLists {
+    shoppingLists {
+      id
+      recipeId
+      title
+      createdAt
+      items {
+        name
+        quantity
+        unit
+        substitutes
+        note
+      }
+    }
+  }
+`;
+
+export const CreateShoppingList = gql`
+  mutation CreateShoppingList($recipeId: ID!) {
+    createShoppingList(recipeId: $recipeId) {
+      id
+      recipeId
+      title
+      createdAt
+      items {
+        name
+        quantity
+        unit
+        substitutes
+        note
+      }
+    }
+  }
+`;
+
+export const UpdateShoppingList = gql`
+  mutation UpdateShoppingList($listId: ID!, $items: [ShoppingItemInput!]!) {
+    updateShoppingList(listId: $listId, items: $items) {
+      id
+      recipeId
+      title
+      createdAt
+      items {
+        name
+        quantity
+        unit
+        substitutes
+        note
+      }
+    }
+  }
+`;
+
+export const DeleteShoppingList = gql`
+  mutation DeleteShoppingList($listId: ID!) {
+    deleteShoppingList(listId: $listId)
+  }
+`;
+
+export const ClearShoppingLists = gql`
+  mutation ClearShoppingLists {
+    clearShoppingLists
+  }
+`;

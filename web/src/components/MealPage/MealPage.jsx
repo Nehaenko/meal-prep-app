@@ -4,6 +4,7 @@ import { useParams, useLocation } from "react-router-dom";
 import { Recipe } from "../../graphql";
 import AddToPlannerButton from "../ActionElements/AddToPlannerButton";
 import AddToFavouritesButton from "../ActionElements/AddToFavouritesButton";
+import AddToShoppingListButton from "../ActionElements/AddToShoppingListButton";
 import { useLoading } from "../../state/LoadingContext";
 
 export default function MealPage() {
@@ -103,7 +104,7 @@ export default function MealPage() {
 
         <div className="meal-detail-actions">
           <AddToPlannerButton recipe={recipe} />
-          <button className="btn btn-ghost">Add to Shopping List</button>
+          <AddToShoppingListButton recipe={recipe} />
         </div>
       </section>
     </div>

@@ -1,20 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import { useApolloClient } from "@apollo/client/react";
+import { useNavigate } from "react-router-dom";
 import { usePlanner } from "../../state/PlannerContext";
+import { useShoppingLists } from "../../state/ShoppingListContext";
 import { Recipe, GeneratePrepPlan } from "../../graphql";
 import PrepStepsList from "./PrepSteps";
 import PlannerCart from "./PlannerCard";
 
 export default function Planner() {
   const { plannerItems, loading, clearPlanner } = usePlanner();
+  const { shoppingLists, createShoppingList, fetchShoppingLists } =
+    useShoppingLists();
+  const navigate = useNavigate();
   const client = useApolloClient();
   const [recipesById, setRecipesById] = useState({});
   const [recipeError, setRecipeError] = useState("");
   const [recipesLoading, setRecipesLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [selectedShoppingIds, setSelectedShoppingIds] = useState(new Set());
   const [prepSteps, setPrepSteps] = useState([]);
   const [prepLoading, setPrepLoading] = useState(false);
   const [prepError, setPrepError] = useState("");
+  const [shoppingLoading, setShoppingLoading] = useState(false);
+  const [shoppingError, setShoppingError] = useState("");
 
   // Fetch recipe details for planner items so we can show titles/images.
   useEffect(() => {
@@ -69,11 +77,19 @@ export default function Planner() {
     setSelectedIds(new Set(plannerItems?.map((item) => item.recipeId) ?? []));
   }, [plannerItems]);
 
+  useEffect(() => {
+    setSelectedShoppingIds(
+      new Set(plannerItems?.map((item) => item.recipeId) ?? [])
+    );
+  }, [plannerItems]);
+
   const clearHandler = async () => {
     await clearPlanner(true);
     setPrepSteps([]);
     setSelectedIds(new Set());
+    setSelectedShoppingIds(new Set());
     setPrepError("");
+    setShoppingError("");
   };
 
   const toggleSelection = (recipeId, isSelected) => {
@@ -85,7 +101,20 @@ export default function Planner() {
     });
   };
 
+  const toggleShoppingSelection = (recipeId, isSelected) => {
+    setSelectedShoppingIds((prev) => {
+      const next = new Set(prev);
+      if (isSelected) next.add(recipeId);
+      else next.delete(recipeId);
+      return next;
+    });
+  };
+
   const selectedList = useMemo(() => Array.from(selectedIds), [selectedIds]);
+  const selectedShoppingList = useMemo(
+    () => Array.from(selectedShoppingIds),
+    [selectedShoppingIds]
+  );
 
   const handleGeneratePrepPlan = async () => {
     setPrepError("");
@@ -107,6 +136,34 @@ export default function Planner() {
       setPrepError(message);
     } finally {
       setPrepLoading(false);
+    }
+  };
+
+  const handleGenerateShoppingList = async () => {
+    setShoppingError("");
+    if (selectedShoppingList.length === 0) {
+      setShoppingError("Select at least one meal to generate a shopping list.");
+      return;
+    }
+
+    try {
+      setShoppingLoading(true);
+      const existing = new Set(
+        (shoppingLists ?? []).map((list) => list.recipeId)
+      );
+      for (const recipeId of selectedShoppingList) {
+        if (!existing.has(recipeId)) {
+          await createShoppingList(recipeId);
+        }
+      }
+      await fetchShoppingLists();
+      navigate("/shopping-list");
+    } catch (err) {
+      const message =
+        err?.message || "Failed to generate shopping list. Please try again.";
+      setShoppingError(message);
+    } finally {
+      setShoppingLoading(false);
     }
   };
 
@@ -140,6 +197,8 @@ export default function Planner() {
             itemsWithRecipe={itemsWithRecipe}
             selectedIds={selectedIds}
             toggleSelection={toggleSelection}
+            selectedShoppingIds={selectedShoppingIds}
+            toggleShoppingSelection={toggleShoppingSelection}
           />
           {recipesLoading && <p>Loading recipe details…</p>}
           {recipeError && <p className="text-red-600 text-sm">{recipeError}</p>}
@@ -151,7 +210,16 @@ export default function Planner() {
             >
               {prepLoading ? "Generating..." : "Generate prep steps"}
             </button>
-            <button className="btn btn-soft">Generate shopping list</button>
+            <button
+              onClick={handleGenerateShoppingList}
+              disabled={shoppingLoading || selectedShoppingList.length === 0}
+              className="btn btn-soft"
+            >
+              {shoppingLoading ? "Generating..." : "Generate shopping list"}
+            </button>
+            {shoppingError && (
+              <p className="text-red-600 text-sm">{shoppingError}</p>
+            )}
           </div>
           <PrepStepsList
             prepSteps={prepSteps}

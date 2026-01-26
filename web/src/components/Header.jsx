@@ -8,6 +8,7 @@ import {
 import {
   Bars3Icon,
   CalendarDaysIcon,
+  ClipboardDocumentListIcon,
   HeartIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
@@ -17,10 +18,12 @@ import AuthModal from "./Auth/AuthModal";
 import { useAuth } from "../state/AuthContext";
 import { usePlanner } from "../state/PlannerContext";
 import { useFavourites } from "../state/FavouriesContext";
+import { useShoppingLists } from "../state/ShoppingListContext";
 
 const nav = [
   { name: "Search", href: "/", icon: MagnifyingGlassIcon },
   { name: "Planner", href: "/planner", icon: CalendarDaysIcon },
+  { name: "Shopping list", href: "/shopping-list", icon: ClipboardDocumentListIcon },
   { name: "Favourites", href: "/favourites", icon: HeartIcon },
 ];
 
@@ -95,7 +98,13 @@ function NavPill({ item, badge }) {
   );
 }
 
-function BottomNav({ avatar, onAvatar, plannerCount, favouritesCount }) {
+function BottomNav({
+  avatar,
+  onAvatar,
+  plannerCount,
+  favouritesCount,
+  shoppingCount,
+}) {
   return (
     <nav className="md:hidden fixed inset-x-4 bottom-5 z-40">
       <div className="relative rounded-3xl bg-white/95 px-5 py-4 shadow-xl ring-1 ring-black/5 backdrop-blur">
@@ -134,7 +143,33 @@ function BottomNav({ avatar, onAvatar, plannerCount, favouritesCount }) {
               </span>
             )}
           </NavLink>
-          <span className="w-14" aria-hidden />
+          <NavLink
+            to="/shopping-list"
+            className={({ isActive }) =>
+              cx(
+                "relative flex h-10 w-10 items-center justify-center rounded-full transition",
+                isActive
+                  ? "bg-[var(--green-200)] text-[var(--green-900)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+              )
+            }
+            aria-label="Shopping list"
+          >
+            <ClipboardDocumentListIcon className="h-5 w-5" />
+            {shoppingCount > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[var(--green-700)] px-1 text-[0.6rem] font-bold text-white">
+                {shoppingCount}
+              </span>
+            )}
+          </NavLink>
+          <button
+            type="button"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--green-700)] text-white shadow-[0_12px_32px_rgba(31,122,70,0.35)]"
+            aria-label="Create recipe (coming soon)"
+            title="Coming soon"
+          >
+            <IoAddOutline className="h-7 w-7" />
+          </button>
           <NavLink
             to="/favourites"
             className={({ isActive }) =>
@@ -156,15 +191,6 @@ function BottomNav({ avatar, onAvatar, plannerCount, favouritesCount }) {
           </NavLink>
           <AvatarBadge avatar={avatar} size="sm" onClick={onAvatar} />
         </div>
-        <NavLink
-          to="/"
-          aria-label="Add meal"
-          className="absolute left-1/2 -top-7 -translate-x-1/2"
-        >
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--green-700)] text-white shadow-[0_12px_40px_rgba(31,122,70,0.35)] relative left-2 top-2">
-            <IoAddOutline className="h-8 w-8" />
-          </div>
-        </NavLink>
       </div>
     </nav>
   );
@@ -175,8 +201,12 @@ export default function Header() {
   const mustAuth = !loading && !user;
   const { plannerItems } = usePlanner();
   const { favouritesItems } = useFavourites();
+  const { shoppingLists } = useShoppingLists();
   const plannerCount = plannerItems?.length ?? 0;
   const favouritesCount = favouritesItems?.length ?? 0;
+  const shoppingCount =
+    shoppingLists?.reduce((acc, list) => acc + (list.items?.length ?? 0), 0) ??
+    0;
   const [sheetOpen, setSheetOpen] = useState(false);
   const avatar = useMemo(
     () => getAnimalAvatar(user?.email ?? "guest"),
@@ -229,38 +259,6 @@ export default function Header() {
           <div className="ml-auto">
             <AvatarBadge avatar={avatar} onClick={() => setSheetOpen(true)} />
           </div>
-        </div>
-
-        <div className="mt-5 hidden gap-2 sm:flex">
-          {nav.map((item) => (
-            <NavPill
-              key={item.name}
-              item={item}
-              badge={
-                item.name === "Planner"
-                  ? plannerCount || undefined
-                  : item.name === "Favourites"
-                  ? favouritesCount || undefined
-                  : undefined
-              }
-            />
-          ))}
-
-          {user ? (
-            <button
-              type="button"
-              onClick={logOut}
-              className="ml-auto inline-flex items-center gap-2 rounded-xl bg-[var(--sand-100)] px-4 py-2 text-sm font-semibold text-[var(--ink-700)] hover:bg-[var(--sand-50)]"
-            >
-              Sign out
-            </button>
-          ) : (
-            !loading && (
-              <span className="ml-auto text-sm font-semibold text-[var(--ink-700)]">
-                Please sign in
-              </span>
-            )
-          )}
         </div>
       </div>
 
@@ -322,6 +320,11 @@ export default function Header() {
                       {plannerCount}
                     </span>
                   )}
+                  {item.name === "Shopping list" && shoppingCount > 0 && (
+                    <span className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--green-700)] px-2 text-[0.7rem] font-bold text-white">
+                      {shoppingCount}
+                    </span>
+                  )}
                   {item.name === "Favourites" && favouritesCount > 0 && (
                     <span className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--green-700)] px-2 text-[0.7rem] font-bold text-white">
                       {favouritesCount}
@@ -358,13 +361,14 @@ export default function Header() {
         onAvatar={() => setSheetOpen(true)}
         plannerCount={plannerCount}
         favouritesCount={favouritesCount}
+        shoppingCount={shoppingCount}
       />
 
       {mustAuth && (
         <Dialog open onClose={() => {}} className="relative z-50">
-          <DialogBackdrop className="fixed inset-0 bg-black/30" />
+          <DialogBackdrop className="auth-modal-backdrop fixed inset-0 bg-black/30" />
           <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-            <DialogPanel className="max-w-lg w-full space-y-4 rounded-lg border bg-white p-6 text-black">
+            <DialogPanel className="auth-modal max-w-lg w-full space-y-4 rounded-lg border bg-white p-6 text-black">
               <AuthModal />
             </DialogPanel>
           </div>

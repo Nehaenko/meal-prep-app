@@ -23,6 +23,7 @@ export const typeDefs = /* GraphQL */ `
     quantity: Float
     unit: String
     substitutes: [String!]
+    note: String
   }
   type ShoppingList {
     id: ID!
@@ -50,6 +51,7 @@ export const typeDefs = /* GraphQL */ `
     quantity: Float
     unit: String
     substitutes: [String!]
+    note: String
   }
 
   type RecipeSearchResult {
@@ -81,6 +83,7 @@ export const typeDefs = /* GraphQL */ `
     createShoppingList(recipeId: ID!): ShoppingList!
     updateShoppingList(listId: ID!, items: [ShoppingItemInput!]!): ShoppingList!
     deleteShoppingList(listId: ID!): Boolean!
+    clearShoppingLists: Boolean!
 
     generatePrepPlan(recipeIds: [ID!]!): [PrepStep!]!
     generateShoppingList(
