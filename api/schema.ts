@@ -37,6 +37,14 @@ export const typeDefs = /* GraphQL */ `
     description: String!
     appliesToRecipeIds: [ID!]!
   }
+  type PrepPlan {
+    id: ID!
+    title: String!
+    recipeIds: [ID!]!
+    steps: [PrepStep!]!
+    createdAt: String!
+    updatedAt: String!
+  }
   type User {
     id: ID!
     email: String!
@@ -46,12 +54,28 @@ export const typeDefs = /* GraphQL */ `
     recipeId: ID!
     servings: Int!
   }
+  input CustomRecipeInput {
+    title: String!
+    image: String
+    ingredients: [String!]!
+    steps: [String!]!
+  }
   input ShoppingItemInput {
     name: String!
     quantity: Float
     unit: String
     substitutes: [String!]
     note: String
+  }
+  input PrepStepInput {
+    order: Int!
+    description: String!
+    appliesToRecipeIds: [ID!]!
+  }
+  input PrepPlanInput {
+    title: String!
+    recipeIds: [ID!]!
+    steps: [PrepStepInput!]!
   }
 
   type RecipeSearchResult {
@@ -68,6 +92,8 @@ export const typeDefs = /* GraphQL */ `
     plannerItems: [PlannerItem!]!
     favorites: [Recipe!]!
     shoppingLists: [ShoppingList!]!
+    prepPlans: [PrepPlan!]!
+    customRecipes: [Recipe!]!
   }
 
   type Mutation {
@@ -80,12 +106,17 @@ export const typeDefs = /* GraphQL */ `
     clearPlanner: Boolean!
     toggleFavorite(recipeId: ID!): Boolean!
 
+    createCustomRecipe(input: CustomRecipeInput!): Recipe!
+    deleteCustomRecipe(recipeId: ID!): Boolean!
+
     createShoppingList(recipeId: ID!): ShoppingList!
     updateShoppingList(listId: ID!, items: [ShoppingItemInput!]!): ShoppingList!
     deleteShoppingList(listId: ID!): Boolean!
     clearShoppingLists: Boolean!
 
     generatePrepPlan(recipeIds: [ID!]!): [PrepStep!]!
+    savePrepPlan(plan: PrepPlanInput!): PrepPlan!
+    deletePrepPlan(planId: ID!): Boolean!
     generateShoppingList(
       recipeIds: [ID!]!
       pantry: [String!]!

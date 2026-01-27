@@ -8,6 +8,7 @@ const EMAIL_IN_USE = "Email already in use";
 const BAD_CREDENTIALS = "Invalid email or password";
 const MANUAL_RECIPE_ID = "manual";
 const MANUAL_LIST_TITLE = "Manual items";
+const CUSTOM_PREFIX = "custom:";
 
 type ParsedShoppingItem = {
   name: string;
@@ -139,6 +140,23 @@ function parseIngredientLine(line: string): ParsedShoppingItem {
   };
 }
 
+async function fetchRecipeById(ctx: any, id: string) {
+  if (id?.startsWith(CUSTOM_PREFIX)) {
+    if (!ctx.user) throw new Error("Not authenticated");
+    const custom = await ctx.repos.customRecipes.get(ctx.user.id, id);
+    if (!custom) return null;
+    await ctx.repos.recipesCache.upsert(custom);
+    return custom;
+  }
+
+  const cached = await ctx.repos.recipesCache.get(id);
+  if (cached) return cached;
+
+  const fetched = await meals.getRecipeById(id);
+  await ctx.repos.recipesCache.upsert(fetched);
+  return fetched;
+}
+
 export const resolvers = {
   // ---------- QUERIES ----------
   Query: {
@@ -157,11 +175,7 @@ export const resolvers = {
       const ids: string[] = await ctx.repos.favorites.listIds(ctx.user.id);
       const recipes = await Promise.all(
         ids.map(async (id) => {
-          const cached = await ctx.repos.recipesCache.get(id);
-          if (cached) return cached;
-          const fetched = await meals.getRecipeById(id);
-          await ctx.repos.recipesCache.upsert(fetched);
-          return fetched;
+          return fetchRecipeById(ctx, id);
         })
       );
       return recipes.filter(Boolean);
@@ -170,6 +184,21 @@ export const resolvers = {
     shoppingLists: async (_: any, __: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.shoppingLists.list(ctx.user.id);
+    },
+
+    prepPlans: async (_: any, __: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      return ctx.repos.prepPlans.list(ctx.user.id);
+    },
+
+    customRecipes: async (_: any, __: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      const recipes = await ctx.repos.customRecipes.list(ctx.user.id);
+      // keep cache in sync for recipe lookups elsewhere
+      await Promise.all(
+        recipes.map((recipe: any) => ctx.repos.recipesCache.upsert(recipe))
+      );
+      return recipes;
     },
 
     searchRecipes: async (_: any, { ingredients, page }: any) => {
@@ -198,11 +227,7 @@ export const resolvers = {
     },
 
     recipe: async (_: any, { id }: any, ctx: any) => {
-      const cached = await ctx.repos.recipesCache.get(id);
-      if (cached) return cached;
-      const full = await meals.getRecipeById(id);
-      await ctx.repos.recipesCache.upsert(full);
-      return full;
+      return fetchRecipeById(ctx, id);
     },
   },
 
@@ -295,6 +320,18 @@ export const resolvers = {
       return ctx.repos.favorites.toggle(ctx.user.id, recipeId);
     },
 
+    createCustomRecipe: async (_: any, { input }: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      const recipe = await ctx.repos.customRecipes.create(ctx.user.id, input);
+      await ctx.repos.recipesCache.upsert(recipe);
+      return recipe;
+    },
+
+    deleteCustomRecipe: async (_: any, { recipeId }: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      return ctx.repos.customRecipes.delete(ctx.user.id, recipeId);
+    },
+
     createShoppingList: async (_: any, { recipeId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
       const existing = await ctx.repos.shoppingLists.findByRecipeId(
@@ -311,10 +348,8 @@ export const resolvers = {
         });
       }
 
-      const recipe =
-        (await ctx.repos.recipesCache.get(recipeId)) ||
-        (await meals.getRecipeById(recipeId));
-      await ctx.repos.recipesCache.upsert(recipe);
+      const recipe = await fetchRecipeById(ctx, recipeId);
+      if (!recipe) throw new Error("Recipe not found");
       return ctx.repos.shoppingLists.create(ctx.user.id, {
         recipeId,
         title: recipe.title,
@@ -346,15 +381,13 @@ export const resolvers = {
       }
 
       try {
-        const recipes = await Promise.all(
-          recipeIds.map(async (id: string) => {
-            const cached = await ctx.repos.recipesCache.get(id);
-            if (cached) return cached;
-            const fetched = await meals.getRecipeById(id);
-            await ctx.repos.recipesCache.upsert(fetched);
-            return fetched;
-          })
+        const recipesRaw = await Promise.all(
+          recipeIds.map((id: string) => fetchRecipeById(ctx, id))
         );
+        const recipes = recipesRaw.filter(Boolean);
+        if (!recipes.length) {
+          throw new Error("No recipes were found for this prep plan");
+        }
 
         const steps = await buildPrepPlan(recipes);
         return steps.map((step: any, idx: number) => ({
@@ -371,6 +404,27 @@ export const resolvers = {
           extensions: { code: "INTERNAL_SERVER_ERROR" },
         });
       }
+    },
+
+    savePrepPlan: async (_: any, { plan }: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      const recipeIds = Array.isArray(plan?.recipeIds) ? plan.recipeIds : [];
+      const steps = Array.isArray(plan?.steps) ? plan.steps : [];
+      if (recipeIds.length === 0 || steps.length === 0) {
+        throw new GraphQLError("Recipe IDs and steps are required", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
+      return ctx.repos.prepPlans.create(ctx.user.id, {
+        title: String(plan?.title ?? "Prep plan"),
+        recipeIds,
+        steps,
+      });
+    },
+
+    deletePrepPlan: async (_: any, { planId }: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      return ctx.repos.prepPlans.delete(ctx.user.id, planId);
     },
   },
 };

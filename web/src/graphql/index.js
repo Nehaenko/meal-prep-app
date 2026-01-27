@@ -94,6 +94,84 @@ export const GeneratePrepPlan = gql`
   }
 `;
 
+export const PrepPlans = gql`
+  query PrepPlans {
+    prepPlans {
+      id
+      title
+      recipeIds
+      createdAt
+      updatedAt
+      steps {
+        order
+        description
+        appliesToRecipeIds
+      }
+    }
+  }
+`;
+
+export const SavePrepPlan = gql`
+  mutation SavePrepPlan($plan: PrepPlanInput!) {
+    savePrepPlan(plan: $plan) {
+      id
+      title
+      recipeIds
+      createdAt
+      updatedAt
+      steps {
+        order
+        description
+        appliesToRecipeIds
+      }
+    }
+  }
+`;
+
+export const DeletePrepPlan = gql`
+  mutation DeletePrepPlan($planId: ID!) {
+    deletePrepPlan(planId: $planId)
+  }
+`;
+
+export const CustomRecipes = gql`
+  query CustomRecipes {
+    customRecipes {
+      id
+      title
+      image
+      ingredients
+      steps
+      source
+      timeMinutes
+      calories
+      summary
+    }
+  }
+`;
+
+export const CreateCustomRecipe = gql`
+  mutation CreateCustomRecipe($input: CustomRecipeInput!) {
+    createCustomRecipe(input: $input) {
+      id
+      title
+      image
+      ingredients
+      steps
+      source
+      timeMinutes
+      calories
+      summary
+    }
+  }
+`;
+
+export const DeleteCustomRecipe = gql`
+  mutation DeleteCustomRecipe($recipeId: ID!) {
+    deleteCustomRecipe(recipeId: $recipeId)
+  }
+`;
+
 export const PlannerItems = gql`
   query PlannerItems {
     plannerItems {

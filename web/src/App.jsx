@@ -4,9 +4,7 @@ import { useAuth } from "./state/AuthContext";
 import { useLoading } from "./state/LoadingContext";
 import Header from "./components/Header";
 import ErrorBanner from "./components/ui/ErrorBanner";
-import Loader from "./components/ui/Loader";
-import ShoppingListsDock from "./components/ShoppingList/ShoppingListsDock";
-import PrepStepsList from "./components/Planner/PrepSteps";
+import Loader from "./components/ui/Loader";;
 import AppRoutes from "./routes"; 
 
 function App() {
@@ -22,8 +20,6 @@ function App() {
       <main className="mx-auto max-w-6xl px-4 pb-36 pt-4 sm:pt-6">
         <AppRoutes />
       </main>
-      {/* <ShoppingListsDock />
-      <PrepStepsList /> */}
     </div>
   );
 }

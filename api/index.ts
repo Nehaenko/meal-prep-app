@@ -14,6 +14,8 @@ import { createPlannerRepo } from "./repos/planner";
 import { createFavoritesRepo } from "./repos/favorites";
 import { createRecipesCacheRepo } from "./repos/recipesCache";
 import { createShoppingListsRepo } from "./repos/shoppingLists";
+import { createPrepPlansRepo } from "./repos/prepPlans";
+import { createCustomRecipesRepo } from "./repos/customRecipes";
 
 async function main() {
   const client = await new MongoClient(
@@ -28,6 +30,8 @@ async function main() {
     favorites: createFavoritesRepo(db),
     recipesCache: createRecipesCacheRepo(db),
     shoppingLists: createShoppingListsRepo(db),
+    prepPlans: createPrepPlansRepo(db),
+    customRecipes: createCustomRecipesRepo(db),
   };
 
   const app = express();

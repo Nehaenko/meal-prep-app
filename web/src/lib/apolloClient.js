@@ -27,6 +27,18 @@ const client = new ApolloClient({
               return incoming;
             },
           },
+          prepPlans: {
+            // Replace prep plans list as a whole to avoid merge warnings.
+            merge(_, incoming) {
+              return incoming;
+            },
+          },
+          customRecipes: {
+            // Replace custom recipes list as a whole to avoid merge warnings.
+            merge(_, incoming) {
+              return incoming;
+            },
+          },
         },
       },
     },

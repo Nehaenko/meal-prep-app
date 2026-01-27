@@ -4,6 +4,8 @@ import MealPage from "../components/MealPage/MealPage";
 import PlannerPage from "../components/Planner/Planner";
 import FavouritesPage from "../components/Favourites/Favourites";
 import ShoppingListPage from "../components/ShoppingList/ShoppingListPage";
+import PrepPlanPage from "../components/PrepPlan/PrepPlanPage";
+import CustomRecipesPage from "../components/CustomRecipes/CustomRecipesPage";
 
 // Optional: a tiny 404 page
 function NotFound() {
@@ -22,6 +24,8 @@ export default function AppRoutes() {
       <Route path="/planner" element={<PlannerPage />} />
       <Route path="/favourites" element={<FavouritesPage />} />
       <Route path="/shopping-list" element={<ShoppingListPage />} />
+      <Route path="/prep-plan" element={<PrepPlanPage />} />
+      <Route path="/my-recipes" element={<CustomRecipesPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
