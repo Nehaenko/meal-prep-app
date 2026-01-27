@@ -3,14 +3,17 @@ import { useApolloClient } from "@apollo/client/react";
 import { useNavigate } from "react-router-dom";
 import { usePlanner } from "../../state/PlannerContext";
 import { useShoppingLists } from "../../state/ShoppingListContext";
+import { usePrepPlans } from "../../state/PrepPlansContext";
+import { useLoading } from "../../state/LoadingContext";
 import { Recipe, GeneratePrepPlan } from "../../graphql";
-import PrepStepsList from "./PrepSteps";
 import PlannerCart from "./PlannerCard";
 
 export default function Planner() {
   const { plannerItems, loading, clearPlanner } = usePlanner();
   const { shoppingLists, createShoppingList, fetchShoppingLists } =
     useShoppingLists();
+  const { setDraftPlan } = usePrepPlans();
+  const { withLoading } = useLoading();
   const navigate = useNavigate();
   const client = useApolloClient();
   const [recipesById, setRecipesById] = useState({});
@@ -18,7 +21,6 @@ export default function Planner() {
   const [recipesLoading, setRecipesLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [selectedShoppingIds, setSelectedShoppingIds] = useState(new Set());
-  const [prepSteps, setPrepSteps] = useState([]);
   const [prepLoading, setPrepLoading] = useState(false);
   const [prepError, setPrepError] = useState("");
   const [shoppingLoading, setShoppingLoading] = useState(false);
@@ -85,7 +87,6 @@ export default function Planner() {
 
   const clearHandler = async () => {
     await clearPlanner(true);
-    setPrepSteps([]);
     setSelectedIds(new Set());
     setSelectedShoppingIds(new Set());
     setPrepError("");
@@ -118,18 +119,29 @@ export default function Planner() {
 
   const handleGeneratePrepPlan = async () => {
     setPrepError("");
-    setPrepSteps([]);
     if (selectedList.length === 0) {
       setPrepError("Select at least one meal to generate a prep plan.");
       return;
     }
     try {
       setPrepLoading(true);
-      const { data } = await client.mutate({
-        mutation: GeneratePrepPlan,
-        variables: { recipeIds: selectedList },
+      const { data } = await withLoading(
+        client.mutate({
+          mutation: GeneratePrepPlan,
+          variables: { recipeIds: selectedList },
+        })
+      );
+      const steps = data?.generatePrepPlan ?? [];
+      if (!steps.length) {
+        setPrepError("No prep steps were generated. Please try again.");
+        return;
+      }
+      setDraftPlan({
+        recipeIds: selectedList,
+        steps,
+        createdAt: new Date().toISOString(),
       });
-      setPrepSteps(data?.generatePrepPlan ?? []);
+      navigate("/prep-plan");
     } catch (err) {
       const message =
         err?.message || "Failed to generate prep steps. Please try again.";
@@ -221,12 +233,7 @@ export default function Planner() {
               <p className="text-red-600 text-sm">{shoppingError}</p>
             )}
           </div>
-          <PrepStepsList
-            prepSteps={prepSteps}
-            itemsWithRecipe={itemsWithRecipe}
-            recipesById={recipesById}
-            prepError={prepError}
-          />
+          {prepError && <p className="text-red-600 text-sm">{prepError}</p>}
         </div>
       )}
     </>

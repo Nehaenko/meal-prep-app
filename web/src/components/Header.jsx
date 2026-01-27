@@ -11,6 +11,8 @@ import {
   ClipboardDocumentListIcon,
   HeartIcon,
   MagnifyingGlassIcon,
+  PencilSquareIcon,
+  SparklesIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { IoAddOutline } from "react-icons/io5";
@@ -19,11 +21,15 @@ import { useAuth } from "../state/AuthContext";
 import { usePlanner } from "../state/PlannerContext";
 import { useFavourites } from "../state/FavouriesContext";
 import { useShoppingLists } from "../state/ShoppingListContext";
+import { usePrepPlans } from "../state/PrepPlansContext";
+import { useCustomRecipes } from "../state/CustomRecipesContext";
 
 const nav = [
   { name: "Search", href: "/", icon: MagnifyingGlassIcon },
   { name: "Planner", href: "/planner", icon: CalendarDaysIcon },
   { name: "Shopping list", href: "/shopping-list", icon: ClipboardDocumentListIcon },
+  { name: "My recipes", href: "/my-recipes", icon: PencilSquareIcon },
+  { name: "Prep plan", href: "/prep-plan", icon: SparklesIcon },
   { name: "Favourites", href: "/favourites", icon: HeartIcon },
 ];
 
@@ -99,14 +105,15 @@ function NavPill({ item, badge }) {
 }
 
 function BottomNav({
-  avatar,
-  onAvatar,
   plannerCount,
   favouritesCount,
   shoppingCount,
+  prepCount,
+  hasPrepDraft,
+  customCount,
 }) {
   return (
-    <nav className="md:hidden fixed inset-x-4 bottom-5 z-40">
+    <nav className="fixed inset-x-4 bottom-5 z-40">
       <div className="relative rounded-3xl bg-white/95 px-5 py-4 shadow-xl ring-1 ring-black/5 backdrop-blur">
         <div className="flex items-center justify-between">
           <NavLink
@@ -162,14 +169,25 @@ function BottomNav({
               </span>
             )}
           </NavLink>
-          <button
-            type="button"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--green-700)] text-white shadow-[0_12px_32px_rgba(31,122,70,0.35)]"
-            aria-label="Create recipe (coming soon)"
-            title="Coming soon"
+          <NavLink
+            to="/my-recipes"
+            className={({ isActive }) =>
+              cx(
+                "relative flex h-10 w-10 items-center justify-center rounded-full transition",
+                isActive
+                  ? "bg-[var(--green-200)] text-[var(--green-900)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+              )
+            }
+            aria-label="My recipes"
           >
-            <IoAddOutline className="h-7 w-7" />
-          </button>
+            <IoAddOutline className="h-6 w-6" />
+            {customCount > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[var(--green-700)] px-1 text-[0.6rem] font-bold text-white">
+                {customCount}
+              </span>
+            )}
+          </NavLink>
           <NavLink
             to="/favourites"
             className={({ isActive }) =>
@@ -189,7 +207,25 @@ function BottomNav({
               </span>
             )}
           </NavLink>
-          <AvatarBadge avatar={avatar} size="sm" onClick={onAvatar} />
+          <NavLink
+            to="/prep-plan"
+            className={({ isActive }) =>
+              cx(
+                "relative flex h-10 w-10 items-center justify-center rounded-full transition",
+                isActive || hasPrepDraft
+                  ? "bg-[var(--green-200)] text-[var(--green-900)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+              )
+            }
+            aria-label="Prep plan"
+          >
+            <SparklesIcon className="h-5 w-5" />
+            {prepCount > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[var(--green-700)] px-1 text-[0.6rem] font-bold text-white">
+                {prepCount}
+              </span>
+            )}
+          </NavLink>
         </div>
       </div>
     </nav>
@@ -202,11 +238,16 @@ export default function Header() {
   const { plannerItems } = usePlanner();
   const { favouritesItems } = useFavourites();
   const { shoppingLists } = useShoppingLists();
+  const { prepPlans, draftPlan } = usePrepPlans();
+  const { customRecipes } = useCustomRecipes();
   const plannerCount = plannerItems?.length ?? 0;
   const favouritesCount = favouritesItems?.length ?? 0;
   const shoppingCount =
     shoppingLists?.reduce((acc, list) => acc + (list.items?.length ?? 0), 0) ??
     0;
+  const customCount = customRecipes?.length ?? 0;
+  const hasPrepDraft = (draftPlan?.steps?.length ?? 0) > 0;
+  const prepCount = hasPrepDraft ? 1 : prepPlans?.length ?? 0;
   const [sheetOpen, setSheetOpen] = useState(false);
   const avatar = useMemo(
     () => getAnimalAvatar(user?.email ?? "guest"),
@@ -325,6 +366,16 @@ export default function Header() {
                       {shoppingCount}
                     </span>
                   )}
+                  {item.name === "My recipes" && customCount > 0 && (
+                    <span className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--green-700)] px-2 text-[0.7rem] font-bold text-white">
+                      {customCount}
+                    </span>
+                  )}
+                  {item.name === "Prep plan" && prepCount > 0 && (
+                    <span className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--green-700)] px-2 text-[0.7rem] font-bold text-white">
+                      {prepCount}
+                    </span>
+                  )}
                   {item.name === "Favourites" && favouritesCount > 0 && (
                     <span className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--green-700)] px-2 text-[0.7rem] font-bold text-white">
                       {favouritesCount}
@@ -357,11 +408,12 @@ export default function Header() {
       </Dialog>
 
       <BottomNav
-        avatar={avatar}
-        onAvatar={() => setSheetOpen(true)}
         plannerCount={plannerCount}
         favouritesCount={favouritesCount}
         shoppingCount={shoppingCount}
+        prepCount={prepCount}
+        hasPrepDraft={hasPrepDraft}
+        customCount={customCount}
       />
 
       {mustAuth && (
