@@ -66,7 +66,6 @@ export function PlannerProvider({ children }) {
       mutation: ClearPlanner,
     });
     setPlannerItems([]);
-    await client.resetStore();
     setLoading(false);
   };
 
@@ -78,7 +77,6 @@ export function PlannerProvider({ children }) {
       errorPolicy: "all",
     });
     await fetchPlannerItems();
-    await client.resetStore();
     setLoading(false);
   };
 

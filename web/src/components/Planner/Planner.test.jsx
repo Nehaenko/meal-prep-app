@@ -19,21 +19,52 @@ import Planner from "./Planner";
 const addToPlannerMock = vi.fn();
 const removeFromPlannerMock = vi.fn();
 const clearPlanner = vi.fn();
+const createShoppingListMock = vi.fn();
+const fetchShoppingListsMock = vi.fn();
+const setDraftPlanMock = vi.fn();
 let plannerState;
+let shoppingListState;
+let prepPlanState;
 let queryMock;
+let mutateMock;
+let navigateMock;
+
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
 
 vi.mock("../../graphql", () => ({
   Recipe: {},
+  GeneratePrepPlan: {},
 }));
 
 vi.mock("@apollo/client/react", () => ({
   useApolloClient: () => ({
     query: (...args) => queryMock(...args),
+    mutate: (...args) => mutateMock(...args),
+  }),
+}));
+
+vi.mock("../../state/LoadingContext", () => ({
+  useLoading: () => ({
+    withLoading: (promise) => promise,
   }),
 }));
 
 vi.mock("../../state/PlannerContext", () => ({
   usePlanner: () => plannerState,
+}));
+
+vi.mock("../../state/ShoppingListContext", () => ({
+  useShoppingLists: () => shoppingListState,
+}));
+
+vi.mock("../../state/PrepPlansContext", () => ({
+  usePrepPlans: () => prepPlanState,
 }));
 
 describe("Planner flows", () => {
@@ -44,6 +75,11 @@ describe("Planner flows", () => {
     removeFromPlannerMock.mockResolvedValue();
     clearPlanner.mockReset();
     clearPlanner.mockResolvedValue();
+    createShoppingListMock.mockReset();
+    createShoppingListMock.mockResolvedValue();
+    fetchShoppingListsMock.mockReset();
+    fetchShoppingListsMock.mockResolvedValue();
+    setDraftPlanMock.mockReset();
 
     queryMock = vi.fn(({ variables }) =>
       Promise.resolve({
@@ -58,12 +94,25 @@ describe("Planner flows", () => {
       })
     );
 
+    mutateMock = vi.fn();
+    navigateMock = vi.fn();
+
     plannerState = {
       plannerItems: [],
       loading: false,
       addToPlanner: addToPlannerMock,
       removeFromPlanner: removeFromPlannerMock,
       clearPlanner: clearPlanner,
+    };
+
+    shoppingListState = {
+      shoppingLists: [],
+      createShoppingList: createShoppingListMock,
+      fetchShoppingLists: fetchShoppingListsMock,
+    };
+
+    prepPlanState = {
+      setDraftPlan: setDraftPlanMock,
     };
   });
 
@@ -154,5 +203,44 @@ describe("Planner flows", () => {
     await waitFor(() =>
       expect(screen.getByTestId("planner_empty")).toBeInTheDocument()
     );
+  });
+
+  it("generates a prep plan when a recipe is selected", async () => {
+    const user = userEvent.setup();
+    plannerState.plannerItems = [
+      { id: "plan-1", recipeId: "abc123", servings: 2 },
+    ];
+    const steps = [
+      { order: 1, description: "Chop vegetables", appliesToRecipeIds: ["abc123"] },
+    ];
+    mutateMock.mockResolvedValue({
+      data: { generatePrepPlan: steps },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/planner"]}>
+        <Planner />
+      </MemoryRouter>
+    );
+
+    const generateButton = screen.getByRole("button", {
+      name: /generate prep steps/i,
+    });
+
+    await waitFor(() => expect(generateButton).toBeEnabled());
+    await user.click(generateButton);
+
+    expect(mutateMock).toHaveBeenCalledWith({
+      mutation: {},
+      variables: { recipeIds: ["abc123"] },
+    });
+    expect(setDraftPlanMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recipeIds: ["abc123"],
+        steps,
+        createdAt: expect.any(String),
+      })
+    );
+    expect(navigateMock).toHaveBeenCalledWith("/prep-plan");
   });
 });

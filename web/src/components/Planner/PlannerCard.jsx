@@ -19,7 +19,6 @@ export default function PlannerCart({
       await removeFromPlanner(id);
     } catch (error) {
       setPlannerError(error.message);
-      setTimeout(() => setPlannerError(""), 3000);
     }
   }
 
@@ -63,31 +62,33 @@ export default function PlannerCart({
               </div>
             </div>
           </Link>
-          <div className="meal-card-actions">
-            <label className="meal-card-select">
-              <input
-                id={`select-${item.id}`}
-                type="checkbox"
-                checked={selectedIds.has(item.recipeId)}
-                onChange={(e) =>
-                  toggleSelection(item.recipeId, e.target.checked)
-                }
-                onClick={(e) => e.stopPropagation()}
-              />
-              Use in prep plan
-            </label>
-            <label className="meal-card-select">
-              <input
-                id={`select-shopping-${item.id}`}
-                type="checkbox"
-                checked={selectedShoppingIds.has(item.recipeId)}
-                onChange={(e) =>
-                  toggleShoppingSelection(item.recipeId, e.target.checked)
-                }
-                onClick={(e) => e.stopPropagation()}
-              />
-              Use in shopping list
-            </label>
+          <div className="meal-card-actions meal-card-actions--planner">
+            <div className="meal-card-checks">
+              <label className="meal-card-select">
+                <input
+                  id={`select-${item.id}`}
+                  type="checkbox"
+                  checked={selectedIds.has(item.recipeId)}
+                  onChange={(e) =>
+                    toggleSelection(item.recipeId, e.target.checked)
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                />
+                Include in prep plan
+              </label>
+              <label className="meal-card-select">
+                <input
+                  id={`select-shopping-${item.id}`}
+                  type="checkbox"
+                  checked={selectedShoppingIds.has(item.recipeId)}
+                  onChange={(e) =>
+                    toggleShoppingSelection(item.recipeId, e.target.checked)
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                />
+                Include in shopping list
+              </label>
+            </div>
             <button
               type="button"
               onClick={() => removeFromPlannerHandler(item.recipeId)}

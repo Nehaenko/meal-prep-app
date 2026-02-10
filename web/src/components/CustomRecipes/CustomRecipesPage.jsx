@@ -215,7 +215,7 @@ export default function CustomRecipesPage() {
     <div className="custom-page">
       <section className="custom-hero glass-card">
         <div>
-          <h2>My recipes</h2>
+          <h1>My recipes</h1>
           <p>Create your own meals and use them in planner, prep plans, and shopping lists.</p>
           {error ? <p className="custom-error">{error}</p> : null}
         </div>
@@ -256,6 +256,7 @@ export default function CustomRecipesPage() {
                   ref={fileRef}
                   type="file"
                   accept="image/*"
+                  className="custom-file-input"
                   onChange={handleFileChange}
                   disabled={busy}
                 />
@@ -391,7 +392,7 @@ export default function CustomRecipesPage() {
 
         {loading && !customRecipes ? <p>Loading recipes...</p> : null}
         {!loading && sortedRecipes.length === 0 ? (
-          <p className="empty-state">No custom recipes yet. Add your first one above.</p>
+          <p className="empty-state" data-testid="empty-custom-recipes">No custom recipes yet. Add your first one above.</p>
         ) : null}
 
         {sortedRecipes.length > 0 ? (

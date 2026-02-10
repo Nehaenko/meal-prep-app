@@ -7,6 +7,11 @@ export default function AuthModal() {
   const { logIn, signUp, fetchCurrentUser } = useAuth();
   const [loginError, setLoginError] = useState("");
   const [signupError, setSignupError] = useState("");
+  const passwordRequirements =
+    "Password must be at least 8 characters and include 1 number and 1 special character.";
+
+  const meetsPasswordRequirements = (value) =>
+    /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value);
 
   async function logInHandler(event) {
     event.preventDefault();
@@ -19,7 +24,6 @@ export default function AuthModal() {
       await fetchCurrentUser();
     } catch (error) {
       setLoginError(error.message);
-      setTimeout(() => setLoginError(""), 3000);
     }
   }
 
@@ -30,6 +34,11 @@ export default function AuthModal() {
     const password = fd.get("password-signup");
 
     try {
+      if (!meetsPasswordRequirements(String(password ?? ""))) {
+        setSignupError(passwordRequirements);
+        setTimeout(() => setSignupError(""), 3000);
+        return;
+      }
       await signUp(String(email), String(password));
       await fetchCurrentUser();
     } catch (error) {

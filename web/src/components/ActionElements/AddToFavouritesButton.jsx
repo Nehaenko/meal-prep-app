@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { IoHeartOutline, IoHeartSharp } from "react-icons/io5";
-import { useFavourites } from "../../state/FavouriesContext";
+import { useFavourites } from "../../state/FavouritesContext";
 
 export default function AddToFavouritesButton({ recipe }) {
   const {
@@ -10,10 +10,10 @@ export default function AddToFavouritesButton({ recipe }) {
   } = useFavourites();
 
   const [favouritesError, setFavouritesError] = useState("");
-  const isFavourite = useMemo(() => {
-    if (!favouritesItems || !recipe?.id) return false;
-    return favouritesItems.some((item) => item.id === recipe.id);
-  }, [favouritesItems, recipe?.id]);
+  const isFavourite =
+    !!recipe?.id &&
+    Array.isArray(favouritesItems) &&
+    favouritesItems.some((item) => item.id === recipe.id);
 
   async function addTofavouritesHandler(event) {
     event.preventDefault();
@@ -25,7 +25,6 @@ export default function AddToFavouritesButton({ recipe }) {
       await toggleFavourites(recipe.id);
     } catch (error) {
       setFavouritesError(error.message || "Failed to update favourites");
-      setTimeout(() => setFavouritesError(""), 3000);
     }
   }
 

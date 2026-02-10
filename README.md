@@ -1,136 +1,90 @@
-### Meal prep App Specifications
+# Meal Prep App
 
-**Core Types (conceptual)**
+A full‑stack meal planning app with ingredient‑based recipe search, personal planning, prep plans, and shopping lists.
 
-- `Recipe { id, title, image, steps[], ingredients[], source, timeMinutes, callories }`
-- `PlannerItem { id, recipeId, servings, createdAt }`
-- `PrepStep { order, description, appliesToRecipeIds[] }`
-- `ShoppingList { id, recipeId, title, items: [ShoppingItem!]!, createdAt }`
-- `ShoppingItem { name, quantity, unit, substitutes[] }`
+**Highlights**
+- Ingredient‑based recipe search powered by TheMealDB.
+- Planner for organizing meals and servings.
+- Prep plan generation using OpenAI (optional but required to generate plans).
+- Shopping lists per recipe plus a manual list with editing tools.
+- Custom recipes, favourites, and saved prep plans.
+- Cookie‑based authentication with basic password rules.
 
-**Queries**
+**Tech Stack**
+- Web: React 19, Vite, React Router, Apollo Client, Tailwind.
+- API: Node/Express, GraphQL Yoga, MongoDB.
+- External services: TheMealDB API, OpenAI for prep plan generation.
 
-- `searchRecipes(ingredients: [String!]!, page: Int): RecipeSearchResult!`
-- `recipe(id: ID!): Recipe`
-- `plannerItems: [PlannerItem!]!`
-- `favorites: [Recipe!]!`
-- `shoppingLists: [ShoppingList!]!` ← feeds the floating modal
+**Project Structure**
+- `api/` GraphQL server, resolvers, repos, adapters.
+- `web/` React client.
+- `docker-compose.yml` MongoDB container for local dev.
+- `Architecture.md`, `ERD.md`, `Validation.md` for deeper docs.
 
-**Mutations**
+## Local Setup
 
-- `addToPlanner(items: [PlannerItemInput!]!): [PlannerItem!]!`
-- `removeFromPlanner(recipeId: ID!): Boolean!`
-- `clearPlanner: Boolean!`
-- `toggleFavorite(recipeId: ID!): Boolean!`
-- `generatePrepPlan(recipeIds: [ID!]!): [PrepStep!]!`
-- `generateShoppingList(recipeIds: [ID!]!, pantry: [String!]!): [ShoppingItem!]!`
-- **(per-recipe lists):**
-    - `createShoppingList(recipeId: ID!): ShoppingList!` *(server computes “missing” = recipe.ingredients − pantry/initial query)*
-    - `updateShoppingList(listId: ID!, items: [ShoppingItemInput!]!): ShoppingList!`
-    - `deleteShoppingList(listId: ID!): Boolean!`
-- `signup(email, password)`, `login(email, password)`, `logout`
-
-### Tech in use
-
-- DB: MongoDB (native Node driver, no Mongoose)
-- Recipe API: TheMealDB
-- LLM: for prep-plan merging & substitutions
-
-```mermaid
-flowchart LR
-  user[User]
-  web[React + Router + Apollo Client]
-  api[Express + GraphQL Yoga]
-  db[(MongoDB)]
-  mealdb[TheMealDB API]
-  llm[LLM Provider]
-
-  user --> web
-  web -->|GraphQL| api
-  api --> db
-  api --> mealdb
-  api --> llm
+1. Start MongoDB
+```
+cd meal-prep-app
+docker compose up -d
 ```
 
-```mermaid
-flowchart TB
-  subgraph API[Express + GraphQL Yoga]
-    schema[GraphQL Schema]
-    resolvers[Resolvers]
-    auth[Auth Middleware]
-    adapters[[Adapters: TheMealDB / LLM]]
-    repos[[Repositories: users, plannerItems, favorites, recipesCache, shoppingLists]]
-  end
-  schema --> resolvers
-  resolvers --> auth
-  resolvers --> repos
-  resolvers --> adapters
+2. API environment variables (`meal-prep-app/api/.env`)
+```
+MONGO_URI=mongodb://localhost:27017/meal-prep
+JWT_SECRET=change-me
+CORS_ORIGIN=http://localhost:5173
+OPENAI_API_KEY=optional-but-required-for-prep-plans
+PORT=4000
 ```
 
-```mermaid
-sequenceDiagram
-  participant UI as React UI
-  participant GQL as GraphQL Yoga
-  participant Repo as Mongo (recipesCache, shoppingLists)
-  participant MealDB as TheMealDB
-
-  UI->>GQL: createShoppingList(recipeId)
-  GQL->>Repo: find recipe in recipesCache
-  alt cache miss
-    GQL->>MealDB: fetch recipe details
-    MealDB-->>GQL: recipe
-    GQL->>Repo: upsert recipe in recipesCache
-  end
-  GQL->>GQL: compute missing = ingredients − (pantry ∪ initial search)
-  GQL->>Repo: insert shoppingList {title, items}
-  Repo-->>GQL: shoppingList
-  GQL-->>UI: ShoppingList
+3. Web environment variables (`meal-prep-app/web/.env`)
+```
+VITE_API_URL=http://localhost:4000/graphql
 ```
 
-```mermaid
-erDiagram
-  USERS {
-    ObjectId _id
-    string email
-    string passwordHash
-    date createdAt
-  }
-  PLANNERITEMS {
-    ObjectId _id
-    ObjectId userId
-    string recipeId
-    int servings
-    date createdAt
-  }
-  FAVORITES {
-    ObjectId _id
-    ObjectId userId
-    string recipeId
-    date createdAt
-  }
-  RECIPESCACHE {
-    string _id  "provider:externalId"
-    string provider
-    string externalId
-    string title
-    string image
-    string[] ingredients
-    string[] steps
-    int timeMinutes
-    date cachedAt
-  }
-  SHOPPINGLISTS {
-    ObjectId _id
-    ObjectId userId
-    string recipeId
-    string title
-    json items  "name, quantity?, unit?, substitutes[]"
-    date createdAt
-  }
-
-  USERS ||--o{ PLANNERITEMS : owns
-  USERS ||--o{ FAVORITES : stars
-  USERS ||--o{ SHOPPINGLISTS : has
-  RECIPESCACHE ||--o{ PLANNERITEMS : references
-  RECIPESCACHE ||--o{ SHOPPINGLISTS : references
+4. Install dependencies
 ```
+cd meal-prep-app/api
+npm install
+
+cd ../web
+npm install
+```
+
+5. Run the API and web app
+```
+cd meal-prep-app/api
+npm run dev
+
+cd ../web
+npm run dev
+```
+
+API will be available at `http://localhost:4000/graphql`.
+
+## Scripts
+
+**API**
+- `npm run dev` – run GraphQL server with nodemon.
+- `npm run build` – compile TypeScript.
+- `npm run start` – run compiled server.
+
+**Web**
+- `npm run dev` – start Vite dev server.
+- `npm run build` – production build.
+- `npm run preview` – preview build.
+- `npm run test` – run vitest.
+- `npm run lint` – lint web code.
+
+## Data & Auth Notes
+
+- Authentication uses signed cookies and JWT.
+- Password rules: minimum 8 characters, at least 1 number and 1 special character.
+- Prep plan generation requires `OPENAI_API_KEY`.
+
+## Useful Docs
+
+- `Architecture.md` – system overview.
+- `ERD.md` – database schema.
+- `Validation.md` – business rules and validations.

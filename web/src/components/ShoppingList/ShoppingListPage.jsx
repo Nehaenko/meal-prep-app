@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useShoppingLists } from "../../state/ShoppingListContext";
 import { useLoading } from "../../state/LoadingContext";
 
@@ -23,7 +23,7 @@ export default function ShoppingListPage() {
     updateShoppingList,
     clearShoppingLists,
   } = useShoppingLists();
-  const { start, stop } = useLoading();
+  const { withLoading } = useLoading();
   const [servings, setServings] = useState(1);
   const [editKey, setEditKey] = useState(null);
   const [draft, setDraft] = useState({ name: "", quantity: "", unit: "" });
@@ -34,12 +34,6 @@ export default function ShoppingListPage() {
     note: "",
   });
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!saving) return undefined;
-    start();
-    return () => stop();
-  }, [saving, start, stop]);
 
   const aggregated = useMemo(() => {
     if (!shoppingLists) return [];
@@ -131,14 +125,18 @@ export default function ShoppingListPage() {
         (list.items ?? []).some((item) => normalizeName(item.name) === editKey)
       );
 
-      for (const list of listsToUpdate) {
-        const nextItems = (list.items ?? []).map((item) =>
-          normalizeName(item.name) === editKey
-            ? { ...item, name, quantity, unit }
-            : item
-        );
-        await updateShoppingList(list.id, nextItems);
-      }
+      await withLoading(
+        (async () => {
+          for (const list of listsToUpdate) {
+            const nextItems = (list.items ?? []).map((item) =>
+              normalizeName(item.name) === editKey
+                ? { ...item, name, quantity, unit }
+                : item
+            );
+            await updateShoppingList(list.id, nextItems);
+          }
+        })()
+      );
 
       cancelEdit();
     } catch (err) {
@@ -153,12 +151,16 @@ export default function ShoppingListPage() {
         (list.items ?? []).some((item) => normalizeName(item.name) === key)
       );
 
-      for (const list of listsToUpdate) {
-        const nextItems = (list.items ?? []).filter(
-          (item) => normalizeName(item.name) !== key
-        );
-        await updateShoppingList(list.id, nextItems);
-      }
+      await withLoading(
+        (async () => {
+          for (const list of listsToUpdate) {
+            const nextItems = (list.items ?? []).filter(
+              (item) => normalizeName(item.name) !== key
+            );
+            await updateShoppingList(list.id, nextItems);
+          }
+        })()
+      );
     } catch (err) {
       setError(err?.message || "Failed to remove item.");
     }
@@ -179,17 +181,20 @@ export default function ShoppingListPage() {
 
     try {
       setError("");
-      const list =
-        manualList || (await createShoppingList("manual"));
-      if (!list?.id) {
-        throw new Error("Failed to create manual list.");
-      }
+      await withLoading(
+        (async () => {
+          const list = manualList || (await createShoppingList("manual"));
+          if (!list?.id) {
+            throw new Error("Failed to create manual list.");
+          }
 
-      const baseItems = list.items ?? [];
-      await updateShoppingList(list.id, [
-        ...baseItems,
-        { name, quantity, unit, note },
-      ]);
+          const baseItems = list.items ?? [];
+          await updateShoppingList(list.id, [
+            ...baseItems,
+            { name, quantity, unit, note },
+          ]);
+        })()
+      );
 
       setNewItem({ name: "", quantity: "", unit: "", note: "" });
     } catch (err) {
@@ -200,7 +205,7 @@ export default function ShoppingListPage() {
   const handleClearAll = async () => {
     try {
       setError("");
-      await clearShoppingLists();
+      await withLoading(clearShoppingLists());
     } catch (err) {
       setError(err?.message || "Failed to clear shopping list.");
     }
@@ -210,7 +215,7 @@ export default function ShoppingListPage() {
     <div className="shopping-page">
       <section className="shopping-header glass-card">
         <div className="shopping-header-content">
-          <h2>Shopping list</h2>
+          <h1>Shopping list</h1>
           <p>
             See everything you need in one place, with notes on which meals use
             each ingredient.
@@ -254,7 +259,7 @@ export default function ShoppingListPage() {
 
         {loading && !shoppingLists && <p>Loading shopping list...</p>}
         {!loading && aggregated.length === 0 && (
-          <p className="empty-state">Your shopping list is empty.</p>
+          <p className="empty-state" data-testid="empty-shopping-list">Your shopping list is empty.</p>
         )}
 
         {aggregated.length > 0 && (
@@ -382,7 +387,11 @@ export default function ShoppingListPage() {
           <span className="shopping-hint">Saved in your manual list.</span>
         </div>
         <form className="shopping-add-form" onSubmit={addItem}>
+          <label className="sr-only" htmlFor="shopping-ingredient-name">
+            Ingredient name
+          </label>
           <input
+            id="shopping-ingredient-name"
             className="shopping-input"
             value={newItem.name}
             onChange={(event) =>
@@ -391,7 +400,11 @@ export default function ShoppingListPage() {
             placeholder="Ingredient name"
             disabled={saving}
           />
+          <label className="sr-only" htmlFor="shopping-ingredient-note">
+            Recipe note
+          </label>
           <input
+            id="shopping-ingredient-note"
             className="shopping-input shopping-input--note"
             value={newItem.note}
             onChange={(event) =>
@@ -400,7 +413,11 @@ export default function ShoppingListPage() {
             placeholder="Recipe note (optional)"
             disabled={saving}
           />
+          <label className="sr-only" htmlFor="shopping-ingredient-qty">
+            Quantity
+          </label>
           <input
+            id="shopping-ingredient-qty"
             type="number"
             step="0.01"
             className="shopping-input shopping-input--qty"
@@ -411,7 +428,11 @@ export default function ShoppingListPage() {
             placeholder="Qty"
             disabled={saving}
           />
+          <label className="sr-only" htmlFor="shopping-ingredient-unit">
+            Unit
+          </label>
           <input
+            id="shopping-ingredient-unit"
             className="shopping-input shopping-input--unit"
             value={newItem.unit}
             onChange={(event) =>

@@ -6,6 +6,9 @@ import { GraphQLError } from "graphql";
 
 const EMAIL_IN_USE = "Email already in use";
 const BAD_CREDENTIALS = "Invalid email or password";
+const PASSWORD_REQUIREMENTS =
+  "Password must be at least 8 characters and include 1 number and 1 special character.";
+const PASSWORD_REGEX = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 const MANUAL_RECIPE_ID = "manual";
 const MANUAL_LIST_TITLE = "Manual items";
 const CUSTOM_PREFIX = "custom:";
@@ -241,6 +244,11 @@ export const resolvers = {
     ): Promise<boolean> => {
       if (!email || !password) {
         throw new GraphQLError("Email and password are required", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
+      if (!PASSWORD_REGEX.test(String(password))) {
+        throw new GraphQLError(PASSWORD_REQUIREMENTS, {
           extensions: { code: "BAD_USER_INPUT" },
         });
       }

@@ -23,7 +23,7 @@ function stepKey(step) {
 
 export default function PrepPlanPage() {
   const client = useApolloClient();
-  const { start, stop } = useLoading();
+  const { withLoading } = useLoading();
   const {
     prepPlans,
     loading,
@@ -35,12 +35,6 @@ export default function PrepPlanPage() {
   } = usePrepPlans();
   const [recipesById, setRecipesById] = useState({});
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!saving) return undefined;
-    start();
-    return () => stop();
-  }, [saving, start, stop]);
 
   const allRecipeIds = useMemo(() => {
     const ids = new Set();
@@ -96,11 +90,13 @@ export default function PrepPlanPage() {
     if (!draftPlan?.steps?.length) return;
     try {
       setError("");
-      await savePrepPlan({
-        title: draftTitle,
-        recipeIds: draftPlan.recipeIds,
-        steps: draftPlan.steps,
-      });
+      await withLoading(
+        savePrepPlan({
+          title: draftTitle,
+          recipeIds: draftPlan.recipeIds,
+          steps: draftPlan.steps,
+        })
+      );
     } catch (err) {
       setError(err?.message || "Failed to save prep plan.");
     }
@@ -113,7 +109,7 @@ export default function PrepPlanPage() {
   const handleDeleteSaved = async (planId) => {
     try {
       setError("");
-      await deletePrepPlan(planId);
+      await withLoading(deletePrepPlan(planId));
     } catch (err) {
       setError(err?.message || "Failed to delete prep plan.");
     }
@@ -123,7 +119,7 @@ export default function PrepPlanPage() {
     <div className="prep-page">
       <section className="prep-hero glass-card">
         <div>
-          <h2>Prep plans</h2>
+          <h1>Prep plans</h1>
           <p>Generate once, review, and save plans for later cook sessions.</p>
           {error ? <p className="prep-error">{error}</p> : null}
         </div>
@@ -182,7 +178,7 @@ export default function PrepPlanPage() {
         <div className="prep-card-header">
           <div>
             <h3>Saved plans</h3>
-            <p className="prep-meta">
+            <p className="prep-meta" data-testid="saved-plans-count">
               {(prepPlans?.length ?? 0)} saved plan
               {(prepPlans?.length ?? 0) === 1 ? "" : "s"}
             </p>
@@ -245,4 +241,3 @@ export default function PrepPlanPage() {
     </div>
   );
 }
-

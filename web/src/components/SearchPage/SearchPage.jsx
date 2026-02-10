@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client/react";
 import { useLoading } from "../../state/LoadingContext";
@@ -24,6 +24,7 @@ export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const inputRef = useRef(null);
+  const hydratedRef = useRef(false);
   const [runSearch, { data, loading, error }] = useLazyQuery(SearchRecipes, {
     fetchPolicy: "network-only",
   });
@@ -101,23 +102,26 @@ export default function SearchPage() {
     setIngredients((prev) => prev.filter((item) => item !== name));
   }
 
-  function executeSearch(targetIngredients, targetPage) {
-    if (!targetIngredients.length) return;
-    setPage(targetPage);
-    withLoading(
-      runSearch({
-        variables: { ingredients: targetIngredients, page: targetPage },
-      })
-    ).catch((err) => {
-      // Ignore aborts from route changes / StrictMode double-invoke
-      if (err?.name === "AbortError") return;
-      throw err;
-    });
-    setSearchParams({
-      q: targetIngredients.join(","),
-      page: String(targetPage),
-    });
-  }
+  const executeSearch = useCallback(
+    (targetIngredients, targetPage) => {
+      if (!targetIngredients.length) return;
+      setPage(targetPage);
+      withLoading(
+        runSearch({
+          variables: { ingredients: targetIngredients, page: targetPage },
+        })
+      ).catch((err) => {
+        // Ignore aborts from route changes / StrictMode double-invoke
+        if (err?.name === "AbortError") return;
+        throw err;
+      });
+      setSearchParams({
+        q: targetIngredients.join(","),
+        page: String(targetPage),
+      });
+    },
+    [runSearch, setSearchParams, withLoading]
+  );
 
   function goToPage(nextPage) {
     const safePage = Math.min(Math.max(nextPage, 1), totalPages);
@@ -139,6 +143,7 @@ export default function SearchPage() {
   const canPaginate = items.length > 0 && totalPages > 1;
 
   useEffect(() => {
+    if (hydratedRef.current) return;
     const query = searchParams.get("q");
     const page = Number(searchParams.get("page")) || 1;
     const fromUrl = query ? query.split(",").filter(Boolean) : [];
@@ -146,7 +151,8 @@ export default function SearchPage() {
       setIngredients(fromUrl);
       executeSearch(fromUrl, page);
     }
-  }, []);
+    hydratedRef.current = true;
+  }, [executeSearch, searchParams]);
 
   const quickSelected = useMemo(() => ingredients[0], [ingredients]);
 
@@ -162,16 +168,12 @@ export default function SearchPage() {
       <section className="glass-card px-4 py-5 sm:px-6 sm:py-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-[var(--green-700)]">
+            <h1 className="text-sm font-semibold uppercase tracking-wide text-[var(--green-700)]">
               Hello foodie 👋
-            </p>
+            </h1>
             <p className="text-[var(--muted-400)] font-medium">
               Nutritious food at your fingertips.
             </p>
-          </div>
-          <div className="hidden sm:block rounded-2xl bg-[var(--green-200)] px-4 py-3 text-right text-sm font-semibold text-[var(--green-900)]">
-            Fresh &amp; green
-            <div className="text-xs text-[var(--muted-400)]">Meal-prep lab</div>
           </div>
         </div>
 

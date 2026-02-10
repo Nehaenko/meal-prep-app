@@ -77,7 +77,7 @@ export function PrepPlansProvider({ children }) {
     fetchPrepPlans();
   }, [user, authLoading, fetchPrepPlans]);
 
-  const savePrepPlan = async (plan) => {
+  const savePrepPlan = useCallback(async (plan) => {
     setSaving(true);
     try {
       const sanitized = sanitizePlan(plan);
@@ -103,9 +103,9 @@ export function PrepPlansProvider({ children }) {
     } finally {
       setSaving(false);
     }
-  };
+  }, [client]);
 
-  const deletePrepPlan = async (planId) => {
+  const deletePrepPlan = useCallback(async (planId) => {
     setSaving(true);
     try {
       const res = await client.mutate({
@@ -125,7 +125,7 @@ export function PrepPlansProvider({ children }) {
     } finally {
       setSaving(false);
     }
-  };
+  }, [client]);
 
   const clearDraftPlan = () => setDraftPlan(null);
 
@@ -176,4 +176,3 @@ export function usePrepPlans() {
   }
   return ctx;
 }
-

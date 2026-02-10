@@ -1,6 +1,6 @@
 export default function FormComponent({ onSubmit, error, type }) {
   return (
-    <form className="space-y-4" onSubmit={onSubmit}>
+    <form className="space-y-4" onSubmit={onSubmit} noValidate>
       {error && (
         <p
           data-testid={`${type}_error`}
@@ -25,7 +25,7 @@ export default function FormComponent({ onSubmit, error, type }) {
         />
       </div>
       <div>
-        <label className="block mb-1" htmlFor="password-signup">
+        <label className="block mb-1" htmlFor={`password-${type}`}>
           Password
         </label>
         <input
@@ -34,8 +34,22 @@ export default function FormComponent({ onSubmit, error, type }) {
           type="password"
           id={`password-${type}`}
           name={`password-${type}`}
+          minLength={type === "signup" ? 8 : undefined}
+          pattern={
+            type === "signup" ? "(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}" : undefined
+          }
+          title={
+            type === "signup"
+              ? "At least 8 characters, including 1 number and 1 special character."
+              : undefined
+          }
           required
         />
+        {type === "signup" ? (
+          <p className="mt-1 text-xs text-gray-500">
+            At least 8 characters, including 1 number and 1 special character.
+          </p>
+        ) : null}
       </div>
       <button
         type="submit"
