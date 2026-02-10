@@ -1,0 +1,165 @@
+.search-shell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 16px;
+  background: var(--white);
+  border: 1px solid rgba(15, 59, 46, 0.08);
+  box-shadow: 0 14px 40px rgba(15, 59, 46, 0.08);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: var(--ink-900);
+}
+
+.shopping-input {
+  border: 1px solid rgba(15, 59, 46, 0.12);
+  border-radius: 12px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+  color: var(--ink-900);
+  background: var(--white);
+}
+
+.shopping-input:focus {
+  outline: none;
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(46, 184, 114, 0.15);
+}
+
+.shopping-input--qty {
+  width: 90px;
+}
+
+.shopping-input--unit {
+  width: 90px;
+}
+
+.shopping-input--note {
+  min-width: 200px;
+}
+
+.shopping-add-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.custom-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.custom-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.custom-field > span {
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.custom-input,
+.custom-textarea {
+  border-radius: 14px;
+  border: 1px solid rgba(15, 59, 46, 0.14);
+  padding: 0.75rem 0.9rem;
+  font-size: 0.95rem;
+  color: var(--ink-900);
+  background: var(--white);
+  transition: border 150ms ease, box-shadow 150ms ease;
+}
+
+.custom-input:focus,
+.custom-textarea:focus {
+  outline: none;
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(46, 184, 114, 0.16);
+}
+
+.custom-textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.custom-ingredient-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.custom-ingredient-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 96px;
+}
+
+.custom-ingredient-control > span {
+  font-weight: 800;
+  color: var(--ink-900);
+  font-size: 0.85rem;
+}
+
+.custom-ingredient-control--name {
+  flex: 1;
+  min-width: 180px;
+}
+
+.custom-input--qty {
+  width: 96px;
+  padding-right: 0.6rem;
+}
+
+.custom-input--unit {
+  width: 110px;
+  padding-right: 0.6rem;
+}
+
+.custom-input--name {
+  min-width: 0;
+}
+
+.custom-ingredient-list {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.custom-file-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.custom-preview {
+  margin-top: 0.4rem;
+  width: min(320px, 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(15, 59, 46, 0.12);
+  box-shadow: 0 14px 28px rgba(15, 59, 46, 0.12);
+}
+
+.custom-tag-shell {
+  min-height: 56px;
+  align-items: center;
+}
+
+.custom-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}

@@ -72,7 +72,7 @@ export function CustomRecipesProvider({ children }) {
     fetchCustomRecipes();
   }, [user, authLoading, fetchCustomRecipes]);
 
-  const createCustomRecipe = async (input) => {
+  const createCustomRecipe = useCallback(async (input) => {
     setSaving(true);
     try {
       const sanitized = sanitizeInput(input);
@@ -97,9 +97,9 @@ export function CustomRecipesProvider({ children }) {
     } finally {
       setSaving(false);
     }
-  };
+  }, [client]);
 
-  const deleteCustomRecipe = async (recipeId) => {
+  const deleteCustomRecipe = useCallback(async (recipeId) => {
     setSaving(true);
     try {
       const res = await client.mutate({
@@ -119,7 +119,7 @@ export function CustomRecipesProvider({ children }) {
     } finally {
       setSaving(false);
     }
-  };
+  }, [client]);
 
   const value = useMemo(
     () => ({
@@ -130,7 +130,14 @@ export function CustomRecipesProvider({ children }) {
       createCustomRecipe,
       deleteCustomRecipe,
     }),
-    [customRecipes, loading, saving, fetchCustomRecipes]
+    [
+      customRecipes,
+      loading,
+      saving,
+      fetchCustomRecipes,
+      createCustomRecipe,
+      deleteCustomRecipe,
+    ]
   );
 
   return (
@@ -154,4 +161,3 @@ export function useCustomRecipes() {
   }
   return ctx;
 }
-

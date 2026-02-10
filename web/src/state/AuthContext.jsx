@@ -22,6 +22,7 @@ export function AuthProvider({ children }) {
   const client = useApolloClient();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   const fetchCurrentUser = useCallback(async () => {
     try {
@@ -34,6 +35,7 @@ export function AuthProvider({ children }) {
       setUser(null);
     } finally {
       setLoading(false);
+      setInitialized(true);
     }
   }, [client]);
 
@@ -62,6 +64,9 @@ export function AuthProvider({ children }) {
 
       const errs = res.errors ?? res.error?.errors;
       if (errs?.length) throw new Error(extractMessage(errs));
+      if (!res.data?.login) {
+        throw new Error("Invalid email or password");
+      }
 
       await fetchCurrentUser();
     } catch (err) {
@@ -81,6 +86,9 @@ export function AuthProvider({ children }) {
 
       const errs = res.errors ?? res.error?.errors;
       if (errs?.length) throw new Error(extractMessage(errs));
+      if (!res.data?.signup) {
+        throw new Error("Unable to create account");
+      }
 
       await fetchCurrentUser();
       setLoading(false);
@@ -92,7 +100,15 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, logOut, logIn, signUp, fetchCurrentUser }}
+      value={{
+        user,
+        loading,
+        initialized,
+        logOut,
+        logIn,
+        signUp,
+        fetchCurrentUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

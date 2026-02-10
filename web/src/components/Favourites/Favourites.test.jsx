@@ -8,7 +8,7 @@ import AddToFavouritesButton from "../ActionElements/AddToFavouritesButton";
 const mockToggleFavourites = vi.fn();
 let mockUseFavourites;
 
-vi.mock("../../state/FavouriesContext", () => ({
+vi.mock("../../state/FavouritesContext", () => ({
   useFavourites: () => mockUseFavourites(),
 }));
 

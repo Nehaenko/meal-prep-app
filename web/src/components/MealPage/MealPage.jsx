@@ -55,22 +55,20 @@ export default function MealPage() {
       </section>
 
       <section className="meal-detail-card">
-        <h2 className="meal-detail-title">{recipe.title}</h2>
-        {recipe.summary && (
-          <p className="meal-detail-summary">{recipe.summary}</p>
-        )}
-
+        <h1 className="meal-detail-title">{recipe.title}</h1>
         <div className="meal-detail-meta">
-          <div className="meal-detail-stat">
-            <p>Time</p>
-            <span>
-              {recipe.timeMinutes != null ? `${recipe.timeMinutes} min` : "—"}
-            </span>
-          </div>
-          <div className="meal-detail-stat">
-            <p>Calories</p>
-            <span>{recipe.calories != null ? `${recipe.calories} cal` : "—"}</span>
-          </div>
+          {recipe.timeMinutes != null ? (
+            <div className="meal-detail-stat">
+              <p>Time</p>
+              <span>{`${recipe.timeMinutes} min`}</span>
+            </div>
+          ) : null}
+          {recipe.calories != null ? (
+            <div className="meal-detail-stat">
+              <p>Calories</p>
+              <span>{`${recipe.calories} cal`}</span>
+            </div>
+          ) : null}
           <div className="meal-detail-stat">
             <p>Ingredients</p>
             <span>{ingredients.length}</span>

@@ -19,7 +19,7 @@ import { IoAddOutline } from "react-icons/io5";
 import AuthModal from "./Auth/AuthModal";
 import { useAuth } from "../state/AuthContext";
 import { usePlanner } from "../state/PlannerContext";
-import { useFavourites } from "../state/FavouriesContext";
+import { useFavourites } from "../state/FavouritesContext";
 import { useShoppingLists } from "../state/ShoppingListContext";
 import { usePrepPlans } from "../state/PrepPlansContext";
 import { useCustomRecipes } from "../state/CustomRecipesContext";
@@ -233,8 +233,8 @@ function BottomNav({
 }
 
 export default function Header() {
-  const { user, loading, logOut } = useAuth();
-  const mustAuth = !loading && !user;
+  const { user, loading, initialized, logOut } = useAuth();
+  const mustAuth = initialized && !user;
   const { plannerItems } = usePlanner();
   const { favouritesItems } = useFavourites();
   const { shoppingLists } = useShoppingLists();

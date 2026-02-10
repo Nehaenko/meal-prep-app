@@ -1,6 +1,6 @@
 // src/components/CookingLoader.jsx
 export default function Loader({
-  label = "Cooking your meal…",
+  label = "",
   center = "fixed",
   dim = true,
   z = "z-50",
@@ -134,7 +134,9 @@ export default function Loader({
           />
         </svg>
 
-        <p className="text-sm font-medium text-gray-600">{label}</p>
+        {label ? (
+          <p className="text-sm font-medium text-gray-600">{label}</p>
+        ) : null}
 
         <style>{`
           @keyframes bubbleUp { 0%{transform:translateY(0) scale(1);opacity:.9}

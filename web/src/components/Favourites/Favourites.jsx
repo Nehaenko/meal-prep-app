@@ -1,4 +1,4 @@
-import { useFavourites } from "../../state/FavouriesContext";
+import { useFavourites } from "../../state/FavouritesContext";
 import FavouriteCard from "./FavouriteCard";
 
 export default function Favourites() {

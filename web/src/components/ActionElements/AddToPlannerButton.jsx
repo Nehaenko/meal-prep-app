@@ -6,7 +6,6 @@ export default function AddToPlannerButton({ recipe }) {
     addToPlanner,
     removeFromPlanner,
     plannerItems,
-    loading: plannerLoading,
   } = usePlanner();
   const [plannerError, setPlannerError] = useState("");
   const [itemAddedToPlanner, setItemAddedToPlanner] = useState(false);
@@ -27,7 +26,6 @@ export default function AddToPlannerButton({ recipe }) {
         setItemAddedToPlanner(false);
       } catch (error) {
         setPlannerError(error.message);
-        setTimeout(() => setPlannerError(""), 3000);
         setItemAddedToPlanner(false);
       }
     } else {
@@ -36,7 +34,6 @@ export default function AddToPlannerButton({ recipe }) {
         setItemAddedToPlanner(true);
       } catch (error) {
         setPlannerError(error.message);
-        setTimeout(() => setPlannerError(""), 3000);
         setItemAddedToPlanner(false);
       }
     }
@@ -49,14 +46,9 @@ export default function AddToPlannerButton({ recipe }) {
       )}
       <button
         onClick={addToPlannerHandler}
-        disabled={plannerLoading}
         className="meal-action meal-action--primary"
       >
-        {plannerLoading
-          ? "Updating..."
-          : itemAddedToPlanner
-          ? "Remove from Planner"
-          : "Add to Planner"}
+        {itemAddedToPlanner ? "Remove from Planner" : "Add to Planner"}
       </button>
     </>
   );

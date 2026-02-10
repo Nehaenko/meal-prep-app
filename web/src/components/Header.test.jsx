@@ -12,6 +12,7 @@ vi.mock("../state/AuthContext", () => ({
   useAuth: vi.fn(() => ({
     user: null,
     loading: false,
+    initialized: true,
     logOut: vi.fn(),
     logIn: logInSpy,
     signUp: signUpSpy,
@@ -91,7 +92,7 @@ describe("Header", () => {
     const dlg = within(screen.getByRole("dialog"));
 
     await user.type(dlg.getByTestId("login_email"), "allaNonExist@gmail.com");
-    await user.type(dlg.getByTestId("login_password"), "test123");
+    await user.type(dlg.getByTestId("login_password"), "testAlla!123");
     await user.click(dlg.getByRole("button", { name: /log in/i }));
 
     expect(logInSpy).toHaveBeenCalledTimes(1);
@@ -117,14 +118,34 @@ describe("Header", () => {
     await createAccountTab.click();
 
     await user.type(dlg.getByTestId("signup_email"), "allaTestSignUp@gmail.com");
-    await user.type(dlg.getByTestId("signup_password"), "test123");
+    await user.type(dlg.getByTestId("signup_password"), "test123!");
     await user.click(dlg.getByRole("button", { name: /Create Account/i }));
 
     expect(signUpSpy).toHaveBeenCalledTimes(1);
     expect(signUpSpy).toHaveBeenCalledWith(
       "allaTestSignUp@gmail.com",
-      "test123"
+      "test123!"
     );
     expect(fetchMeSpy).toHaveBeenCalled();
+  });
+
+  it("signUp shows validation error when password requirements are not met", async () => {
+    render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>
+    );
+    const user = userEvent.setup();
+    const dlg = within(screen.getByRole("dialog"));
+
+    await screen.getByTestId("create_account_tab").click();
+
+    await user.type(dlg.getByTestId("signup_email"), "badpass@gmail.com");
+    await user.type(dlg.getByTestId("signup_password"), "short");
+    await user.click(dlg.getByRole("button", { name: /Create Account/i }));
+
+    expect(signUpSpy).not.toHaveBeenCalled();
+    const signupError = await dlg.findByTestId("signup_error");
+    expect(signupError).toHaveTextContent(/at least 8 characters/i);
   });
 });
