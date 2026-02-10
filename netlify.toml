@@ -1,5 +1,4 @@
 [build]
-  base = "web"
+  base = "meal-prep-app/web"
   command = "npm run build"
   publish = "dist"
-
