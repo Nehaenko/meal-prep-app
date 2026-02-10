@@ -100,6 +100,10 @@
   flex-wrap: wrap;
 }
 
+.custom-ingredient-row .btn-soft {
+  width: 100%;
+}
+
 .custom-ingredient-control {
   display: flex;
   flex-direction: column;
@@ -143,6 +147,45 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
+
+.custom-file-input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px dashed rgba(15, 59, 46, 0.2);
+  padding: 0.5rem;
+  background: rgba(15, 59, 46, 0.04);
+  color: var(--ink-700);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border 150ms ease, background 150ms ease;
+}
+
+.custom-file-input:hover {
+  border-color: rgba(31, 122, 70, 0.35);
+  background: rgba(31, 122, 70, 0.08);
+}
+
+.custom-file-input::file-selector-button {
+  margin-right: 0.75rem;
+  border: none;
+  border-radius: 10px;
+  padding: 0.55rem 0.85rem;
+  background: linear-gradient(145deg, var(--green-700), var(--green-500));
+  color: var(--white);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(46, 184, 114, 0.2);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.custom-file-input::file-selector-button:hover {
+  box-shadow: 0 12px 28px rgba(46, 184, 114, 0.3);
+}
+
+.custom-file-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .custom-preview {

@@ -256,6 +256,7 @@ export default function CustomRecipesPage() {
                   ref={fileRef}
                   type="file"
                   accept="image/*"
+                  className="custom-file-input"
                   onChange={handleFileChange}
                   disabled={busy}
                 />
