@@ -31,8 +31,10 @@ export function AuthProvider({ children }) {
         fetchPolicy: "network-only",
       });
       setUser(data.me);
+      return data.me ?? null;
     } catch {
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
       setInitialized(true);
@@ -68,7 +70,10 @@ export function AuthProvider({ children }) {
         throw new Error("Invalid email or password");
       }
 
-      await fetchCurrentUser();
+      const me = await fetchCurrentUser();
+      if (!me) {
+        throw new Error("Login failed. Please try again.");
+      }
     } catch (err) {
       setLoading(false);
       throw new Error(extractMessage(err));
@@ -90,7 +95,10 @@ export function AuthProvider({ children }) {
         throw new Error("Unable to create account");
       }
 
-      await fetchCurrentUser();
+      const me = await fetchCurrentUser();
+      if (!me) {
+        throw new Error("Account created, but login failed. Please log in.");
+      }
       setLoading(false);
     } catch (err) {
       setLoading(false);
