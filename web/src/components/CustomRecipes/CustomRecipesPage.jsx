@@ -145,6 +145,7 @@ export default function CustomRecipesPage() {
     setImageData(null);
     setImageName("");
     setIngredients([]);
+    setError("");
     setIngredientDraft({ name: "", quantity: "", unit: "" });
     if (fileRef.current) fileRef.current.value = "";
   };
@@ -216,8 +217,10 @@ export default function CustomRecipesPage() {
       <section className="custom-hero glass-card">
         <div>
           <h1>My recipes</h1>
-          <p>Create your own meals and use them in planner, prep plans, and shopping lists.</p>
-          {error ? <p className="custom-error">{error}</p> : null}
+          <p>
+            Create your own meals and use them in planner, prep plans, and
+            shopping lists.
+          </p>
         </div>
         {hasRecipes ? (
           <button
@@ -233,9 +236,9 @@ export default function CustomRecipesPage() {
 
       {formOpen ? (
         <section className="custom-form-card glass-card">
+          {error ? <p className="custom-error">{error}</p> : null}
           <div className="custom-form-header">
             <h3>Add a recipe</h3>
-            <p className="custom-meta">Saved to your account.</p>
           </div>
           <form className="custom-form" onSubmit={handleSubmit}>
             <label className="custom-field">
@@ -350,7 +353,9 @@ export default function CustomRecipesPage() {
                   ))}
                 </div>
               ) : null}
-              <p className="custom-meta">Add quantity and unit if you have them.</p>
+              <p className="custom-meta">
+                Add quantity and unit if you have them.
+              </p>
             </label>
 
             <label className="custom-field">
@@ -359,7 +364,9 @@ export default function CustomRecipesPage() {
                 className="custom-textarea"
                 value={stepsText}
                 onChange={(event) => setStepsText(event.target.value)}
-                placeholder={"One step per line:\nSeason the chicken\nRoast for 45 minutes"}
+                placeholder={
+                  "One step per line:\nSeason the chicken\nRoast for 45 minutes"
+                }
                 rows={6}
                 disabled={busy}
               />
@@ -392,7 +399,9 @@ export default function CustomRecipesPage() {
 
         {loading && !customRecipes ? <p>Loading recipes...</p> : null}
         {!loading && sortedRecipes.length === 0 ? (
-          <p className="empty-state" data-testid="empty-custom-recipes">No custom recipes yet. Add your first one above.</p>
+          <p className="empty-state" data-testid="empty-custom-recipes">
+            No custom recipes yet. Add your first one above.
+          </p>
         ) : null}
 
         {sortedRecipes.length > 0 ? (

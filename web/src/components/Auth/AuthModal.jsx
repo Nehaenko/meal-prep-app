@@ -15,6 +15,7 @@ export default function AuthModal() {
 
   async function logInHandler(event) {
     event.preventDefault();
+    setLoginError("");
     const fd = new FormData(event.currentTarget);
     const email = fd.get("email-login");
     const password = fd.get("password-login");
@@ -23,12 +24,13 @@ export default function AuthModal() {
       await logIn(String(email), String(password));
       await fetchCurrentUser();
     } catch (error) {
-      setLoginError(error.message);
+      setLoginError(error?.message || "Unable to log in.");
     }
   }
 
   async function signUpHandler(event) {
     event.preventDefault();
+    setSignupError("");
     const fd = new FormData(event.currentTarget);
     const email = fd.get("email-signup");
     const password = fd.get("password-signup");
@@ -42,7 +44,7 @@ export default function AuthModal() {
       await signUp(String(email), String(password));
       await fetchCurrentUser();
     } catch (error) {
-      setSignupError(error.message);
+      setSignupError(error?.message || "Unable to create account.");
       setTimeout(() => setSignupError(""), 3000);
     }
   }
