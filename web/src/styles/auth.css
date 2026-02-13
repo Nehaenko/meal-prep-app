@@ -76,7 +76,7 @@
   padding: 0.7rem 0.85rem;
   background: var(--sand-50);
   color: var(--ink-900);
-  font-size: 0.95rem;
+  font-size: 16px;
   transition: border 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 

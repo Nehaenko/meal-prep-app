@@ -57,9 +57,6 @@ export default function PlannerCart({
                 )}
                 {recipe?.calories != null && <span>{recipe.calories} cal</span>}
               </div>
-              <div className="meal-card-meta">
-                <span>Added: {item.createdAt}</span>
-              </div>
             </div>
           </Link>
           <div className="meal-card-actions meal-card-actions--planner">
