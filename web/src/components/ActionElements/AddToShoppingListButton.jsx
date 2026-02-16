@@ -11,6 +11,7 @@ export default function AddToShoppingListButton({ recipe }) {
   const [listId, setListId] = useState(null);
   const [inList, setInList] = useState(false);
   const [error, setError] = useState("");
+  const [isShoppingSubmitting, setIsShoppingSubmitting] = useState(false);
 
   useEffect(() => {
     if (!shoppingLists || !recipe?.id) return;
@@ -23,9 +24,11 @@ export default function AddToShoppingListButton({ recipe }) {
 
   const handleClick = async (event) => {
     event.preventDefault();
+    if (isShoppingSubmitting) return;
     if (!recipe?.id) return;
     try {
       setError("");
+      setIsShoppingSubmitting(true);
       if (inList && listId) {
         await deleteShoppingList(listId);
         setInList(false);
@@ -37,6 +40,8 @@ export default function AddToShoppingListButton({ recipe }) {
       }
     } catch (err) {
       setError(err?.message || "Failed to update shopping list.");
+    } finally {
+      setIsShoppingSubmitting(false);
     }
   };
 
@@ -47,14 +52,17 @@ export default function AddToShoppingListButton({ recipe }) {
       ) : null}
       <button
         onClick={handleClick}
-        disabled={shoppingLoading}
+        disabled={shoppingLoading || isShoppingSubmitting}
         className="meal-action meal-action--outline"
+        aria-busy={isShoppingSubmitting}
       >
-        {shoppingLoading
-          ? "Updating..."
+        {isShoppingSubmitting
+          ? inList
+            ? "Removing..."
+            : "Adding..."
           : inList
-          ? "Remove from Shopping List"
-          : "Add to Shopping List"}
+            ? "Remove from Shopping List"
+            : "Add to Shopping List"}
       </button>
     </>
   );

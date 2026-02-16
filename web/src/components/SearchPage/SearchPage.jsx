@@ -223,7 +223,7 @@ export default function SearchPage() {
               disabled={loading}
               className="btn btn-primary"
             >
-              {loading ? "Searching…" : "Search"}
+              Search
             </button>
           </div>
         </form>
@@ -235,7 +235,7 @@ export default function SearchPage() {
               type="button"
               className={cx(
                 "chip text-sm",
-                quickSelected === filter.value ? "active" : ""
+                quickSelected === filter.value ? "active" : "",
               )}
               onClick={() => handleQuickFilter(filter.value)}
             >
@@ -255,7 +255,7 @@ export default function SearchPage() {
       )}
 
       {!loading && hasSearched && items.length === 0 && (
-        <p className="mx-auto mt-2 max-w-3xl text-sm font-semibold text-[var(--ink-700)]">
+        <p className="mx-auto mt-2 max-w-3xl text-sm font-semibold text-[var(--ink-700)] empty-state">
           No recipes found. Try another ingredient or category.
         </p>
       )}

@@ -153,7 +153,21 @@ async function fetchRecipeById(ctx: any, id: string) {
   }
 
   const cached = await ctx.repos.recipesCache.get(id);
-  if (cached) return cached;
+  if (cached) {
+    const hasStepLabelPlaceholder = (cached.steps ?? []).some((step: string) =>
+      /^step\s*\d+\s*$/i.test(String(step).trim())
+    );
+    if (cached.source === "themealdb" && hasStepLabelPlaceholder) {
+      try {
+        const refreshed = await meals.getRecipeById(id);
+        await ctx.repos.recipesCache.upsert(refreshed);
+        return refreshed;
+      } catch {
+        // Keep serving cached recipe if upstream fetch fails.
+      }
+    }
+    return cached;
+  }
 
   const fetched = await meals.getRecipeById(id);
   await ctx.repos.recipesCache.upsert(fetched);

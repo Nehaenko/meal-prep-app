@@ -190,7 +190,6 @@ export default function Planner() {
 
   return (
     <>
-      {loading && <p>Loading planner...</p>}
       {plannerCount === 0 && !loading && (
         <p data-testid="planner_empty" className="empty-state">
           Your planner is empty.

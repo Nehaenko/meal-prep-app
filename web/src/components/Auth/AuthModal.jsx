@@ -7,6 +7,8 @@ export default function AuthModal() {
   const { logIn, signUp, fetchCurrentUser } = useAuth();
   const [loginError, setLoginError] = useState("");
   const [signupError, setSignupError] = useState("");
+  const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
+  const [isSignupSubmitting, setIsSignupSubmitting] = useState(false);
   const passwordRequirements =
     "Password must be at least 8 characters and include 1 number and 1 special character.";
 
@@ -15,7 +17,9 @@ export default function AuthModal() {
 
   async function logInHandler(event) {
     event.preventDefault();
+    if (isLoginSubmitting) return;
     setLoginError("");
+    setIsLoginSubmitting(true);
     const fd = new FormData(event.currentTarget);
     const email = fd.get("email-login");
     const password = fd.get("password-login");
@@ -25,12 +29,16 @@ export default function AuthModal() {
       await fetchCurrentUser();
     } catch (error) {
       setLoginError(error?.message || "Unable to log in.");
+    } finally {
+      setIsLoginSubmitting(false);
     }
   }
 
   async function signUpHandler(event) {
     event.preventDefault();
+    if (isSignupSubmitting) return;
     setSignupError("");
+    setIsSignupSubmitting(true);
     const fd = new FormData(event.currentTarget);
     const email = fd.get("email-signup");
     const password = fd.get("password-signup");
@@ -46,12 +54,20 @@ export default function AuthModal() {
     } catch (error) {
       setSignupError(error?.message || "Unable to create account.");
       setTimeout(() => setSignupError(""), 3000);
+    } finally {
+      setIsSignupSubmitting(false);
     }
   }
 
   return (
     <>
-      <TabGroup className="z-10">
+      <TabGroup
+        className="z-10"
+        onChange={() => {
+          setLoginError("");
+          setSignupError("");
+        }}
+      >
         <TabList className="flex space-x-4 pb-2 mb-4">
           <Tab
             data-testid="login_tab"
@@ -72,6 +88,7 @@ export default function AuthModal() {
               onSubmit={logInHandler}
               error={loginError}
               type="login"
+              isSubmitting={isLoginSubmitting}
             />
           </TabPanel>
           <TabPanel>
@@ -79,6 +96,7 @@ export default function AuthModal() {
               onSubmit={signUpHandler}
               error={signupError}
               type="signup"
+              isSubmitting={isSignupSubmitting}
             />
           </TabPanel>
         </TabPanels>

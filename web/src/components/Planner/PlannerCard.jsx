@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { IoTrashSharp } from "react-icons/io5";
 import { usePlanner } from "../../state/PlannerContext";
+import { useLoading } from "../../state/LoadingContext";
 import AddToFavouritesButton from "../ActionElements/AddToFavouritesButton";
 
 export default function PlannerCart({
@@ -12,11 +13,12 @@ export default function PlannerCart({
   toggleShoppingSelection,
 }) {
   const { removeFromPlanner } = usePlanner();
+  const { withLoading } = useLoading();
   const [plannerError, setPlannerError] = useState("");
 
   async function removeFromPlannerHandler(id) {
     try {
-      await removeFromPlanner(id);
+      await withLoading(removeFromPlanner(id));
     } catch (error) {
       setPlannerError(error.message);
     }

@@ -249,6 +249,7 @@ export default function Header() {
   const hasPrepDraft = (draftPlan?.steps?.length ?? 0) > 0;
   const prepCount = hasPrepDraft ? 1 : prepPlans?.length ?? 0;
   const [sheetOpen, setSheetOpen] = useState(false);
+  const currentYear = new Date().getFullYear();
   const avatar = useMemo(
     () => getAnimalAvatar(user?.email ?? "guest"),
     [user?.email]
@@ -315,7 +316,7 @@ export default function Header() {
         <div className="fixed inset-0 flex justify-start">
           <DialogPanel
             transition
-            className="relative h-full w-80 max-w-[80vw] rounded-r-3xl bg-white/95 px-5 py-6 shadow-2xl ring-1 ring-black/5 backdrop-blur transition duration-150 ease-out data-[closed]:opacity-0 data-[closed]:-translate-x-3 data-[closed]:ease-in data-[closed]:duration-100"
+            className="relative flex h-full w-80 max-w-[80vw] flex-col rounded-r-3xl bg-white/95 px-5 py-6 shadow-2xl ring-1 ring-black/5 backdrop-blur transition duration-150 ease-out data-[closed]:opacity-0 data-[closed]:-translate-x-3 data-[closed]:ease-in data-[closed]:duration-100"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -338,7 +339,7 @@ export default function Header() {
               </button>
             </div>
 
-            <div className="mt-6 space-y-2">
+            <div className="mt-6 space-y-2 overflow-y-auto pr-1">
               {nav.map((item) => (
                 <NavLink
                   key={item.name}
@@ -385,7 +386,7 @@ export default function Header() {
               ))}
             </div>
 
-            <div className="mt-6 border-t border-[var(--sand-100)] pt-4 space-y-2">
+            <div className="mt-auto border-t border-[var(--sand-100)] pt-4 space-y-3">
               {user ? (
                 <button
                   type="button"
@@ -402,6 +403,9 @@ export default function Header() {
                   </span>
                 )
               )}
+              <p className="text-xs font-medium text-[var(--muted-400)]">
+                © {currentYear} Meal Prep App. Alla Nekhaienko. All rights reserved.
+              </p>
             </div>
           </DialogPanel>
         </div>

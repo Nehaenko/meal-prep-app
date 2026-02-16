@@ -124,6 +124,26 @@
   transition: transform 150ms ease, box-shadow 150ms ease, color 150ms ease;
 }
 
+.meal-fav-btn.is-pending {
+  opacity: 0.65;
+  animation: fav-pulse 850ms ease-in-out infinite;
+}
+
+@keyframes fav-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(46, 184, 114, 0.35);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(46, 184, 114, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(46, 184, 114, 0);
+  }
+}
+
 .meal-icon-btn {
   height: 2.4rem;
   width: 2.4rem;
