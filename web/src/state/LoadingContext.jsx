@@ -13,6 +13,7 @@ const LoadingContext = createContext(null);
 export function LoadingProvider({ children }) {
   const counter = useRef(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [label, setLabel] = useState("");
   const isLoadingRef = useRef(false);
   const showTimerRef = useRef(null);
   const hideTimerRef = useRef(null);
@@ -36,6 +37,7 @@ export function LoadingProvider({ children }) {
   const setLoadingState = useCallback((next) => {
     isLoadingRef.current = next;
     setIsLoading(next);
+    if (!next) setLabel("");
   }, []);
 
   const start = useCallback(() => {
@@ -73,7 +75,8 @@ export function LoadingProvider({ children }) {
     setLoadingState(false);
   }, [setLoadingState]);
 
-  const withLoading = useCallback(async (promise) => {
+  const withLoading = useCallback(async (promise, nextLabel = "") => {
+    if (nextLabel) setLabel(nextLabel);
     start();
     try {
       return await promise;
@@ -83,8 +86,8 @@ export function LoadingProvider({ children }) {
   }, [start, stop]);
 
   const value = useMemo(
-    () => ({ isLoading, start, stop, withLoading }),
-    [isLoading, start, stop, withLoading]
+    () => ({ isLoading, label, start, stop, withLoading }),
+    [isLoading, label, start, stop, withLoading]
   );
   return (
     <LoadingContext.Provider value={value}>{children}</LoadingContext.Provider>

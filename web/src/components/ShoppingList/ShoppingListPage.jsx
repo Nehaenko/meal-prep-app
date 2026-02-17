@@ -27,6 +27,8 @@ export default function ShoppingListPage() {
   const [servings, setServings] = useState(1);
   const [editKey, setEditKey] = useState(null);
   const [draft, setDraft] = useState({ name: "", quantity: "", unit: "" });
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [removingKey, setRemovingKey] = useState(null);
   const [newItem, setNewItem] = useState({
     name: "",
     quantity: "",
@@ -34,7 +36,6 @@ export default function ShoppingListPage() {
     note: "",
   });
   const [error, setError] = useState("");
-
   const aggregated = useMemo(() => {
     if (!shoppingLists) return [];
     const map = new Map();
@@ -109,6 +110,7 @@ export default function ShoppingListPage() {
   };
 
   const saveEdit = async () => {
+    if (isEditSubmitting) return;
     const name = draft.name.trim();
     if (!name) {
       setError("Ingredient name is required.");
@@ -121,16 +123,46 @@ export default function ShoppingListPage() {
 
     try {
       setError("");
+      setIsEditSubmitting(true);
       const listsToUpdate = (shoppingLists ?? []).filter((list) =>
         (list.items ?? []).some((item) => normalizeName(item.name) === editKey)
       );
 
       await withLoading(
         (async () => {
+          const matches = listsToUpdate.flatMap((list) =>
+            (list.items ?? [])
+              .filter((item) => normalizeName(item.name) === editKey)
+              .map((item) => ({ listId: list.id, item }))
+          );
+          const numericMatches = matches.filter(
+            ({ item }) => item.quantity != null && !Number.isNaN(item.quantity)
+          );
+          const totalCurrent = numericMatches.reduce(
+            (sum, { item }) => sum + Number(item.quantity),
+            0
+          );
+          const matchCount = matches.length || 1;
+          const roundQuantity = (value) =>
+            Math.round(Number(value) * 100) / 100;
+
           for (const list of listsToUpdate) {
             const nextItems = (list.items ?? []).map((item) =>
               normalizeName(item.name) === editKey
-                ? { ...item, name, quantity, unit }
+                ? {
+                    ...item,
+                    name,
+                    quantity:
+                      quantity == null
+                        ? undefined
+                        : totalCurrent > 0
+                          ? roundQuantity(
+                              (Number(item.quantity ?? 0) / totalCurrent) *
+                                quantity
+                            )
+                          : roundQuantity(quantity / matchCount),
+                    unit,
+                  }
                 : item
             );
             await updateShoppingList(list.id, nextItems);
@@ -141,28 +173,30 @@ export default function ShoppingListPage() {
       cancelEdit();
     } catch (err) {
       setError(err?.message || "Failed to update item.");
+    } finally {
+      setIsEditSubmitting(false);
     }
   };
 
   const removeItem = async (key) => {
+    if (removingKey) return;
     try {
       setError("");
+      setRemovingKey(key);
       const listsToUpdate = (shoppingLists ?? []).filter((list) =>
         (list.items ?? []).some((item) => normalizeName(item.name) === key)
       );
 
-      await withLoading(
-        (async () => {
-          for (const list of listsToUpdate) {
-            const nextItems = (list.items ?? []).filter(
-              (item) => normalizeName(item.name) !== key
-            );
-            await updateShoppingList(list.id, nextItems);
-          }
-        })()
-      );
+      for (const list of listsToUpdate) {
+        const nextItems = (list.items ?? []).filter(
+          (item) => normalizeName(item.name) !== key
+        );
+        await updateShoppingList(list.id, nextItems);
+      }
     } catch (err) {
       setError(err?.message || "Failed to remove item.");
+    } finally {
+      setRemovingKey(null);
     }
   };
 
@@ -216,14 +250,12 @@ export default function ShoppingListPage() {
       <section className="shopping-header glass-card">
         <div className="shopping-header-content">
           <h1>Shopping list</h1>
-          <p>
-            See everything you need in one place, with notes on which meals use
-            each ingredient.
-          </p>
           {error ? <p className="shopping-error">{error}</p> : null}
         </div>
         <div className="shopping-servings">
-          <span className="shopping-servings-label">Servings</span>
+          <span className="shopping-servings-label">
+            Choose your serving size:
+          </span>
           <div className="pill-scroll">
             {SERVING_OPTIONS.map((option) => (
               <button
@@ -241,7 +273,72 @@ export default function ShoppingListPage() {
 
       <section className="shopping-panel glass-card">
         <div className="shopping-panel-header">
-          <h3>Ingredients</h3>
+          <h3>Add ingredient</h3>
+        </div>
+        <form className="shopping-add-form" onSubmit={addItem}>
+          <label className="sr-only" htmlFor="shopping-ingredient-name">
+            Ingredient name
+          </label>
+          <input
+            id="shopping-ingredient-name"
+            className="shopping-input"
+            value={newItem.name}
+            onChange={(event) =>
+              setNewItem((prev) => ({ ...prev, name: event.target.value }))
+            }
+            placeholder="Ingredient name"
+            disabled={saving}
+          />
+          <label className="sr-only" htmlFor="shopping-ingredient-note">
+            Recipe note
+          </label>
+          <input
+            id="shopping-ingredient-note"
+            className="shopping-input shopping-input--note"
+            value={newItem.note}
+            onChange={(event) =>
+              setNewItem((prev) => ({ ...prev, note: event.target.value }))
+            }
+            placeholder="Recipe note (optional)"
+            disabled={saving}
+          />
+          <label className="sr-only" htmlFor="shopping-ingredient-qty">
+            Quantity
+          </label>
+          <input
+            id="shopping-ingredient-qty"
+            type="number"
+            step="0.01"
+            className="shopping-input shopping-input--qty"
+            value={newItem.quantity}
+            onChange={(event) =>
+              setNewItem((prev) => ({ ...prev, quantity: event.target.value }))
+            }
+            placeholder="Qty"
+            disabled={saving}
+          />
+          <label className="sr-only" htmlFor="shopping-ingredient-unit">
+            Unit
+          </label>
+          <input
+            id="shopping-ingredient-unit"
+            className="shopping-input shopping-input--unit"
+            value={newItem.unit}
+            onChange={(event) =>
+              setNewItem((prev) => ({ ...prev, unit: event.target.value }))
+            }
+            placeholder="Unit"
+            disabled={saving}
+          />
+          <button type="submit" className="btn btn-primary" disabled={saving}>
+            Add item
+          </button>
+        </form>
+      </section>
+
+      <section className="shopping-panel glass-card">
+        <div className="shopping-panel-header">
+          <h3>Shopping items</h3>
           <div className="shopping-panel-actions">
             <span className="shopping-count">
               {aggregated.length} item{aggregated.length === 1 ? "" : "s"}
@@ -259,7 +356,9 @@ export default function ShoppingListPage() {
 
         {loading && !shoppingLists && <p>Loading shopping list...</p>}
         {!loading && aggregated.length === 0 && (
-          <p className="empty-state" data-testid="empty-shopping-list">Your shopping list is empty.</p>
+          <p className="empty-state" data-testid="empty-shopping-list">
+            Your shopping list is empty.
+          </p>
         )}
 
         {aggregated.length > 0 && (
@@ -270,6 +369,8 @@ export default function ShoppingListPage() {
                   ? entry.quantity * servings
                   : null;
               const sources = Array.from(entry.sources);
+              const isRemoving = removingKey === entry.key;
+              const isRemovingAny = Boolean(removingKey);
               return (
                 <li key={entry.key} className="shopping-item">
                   <div className="shopping-item-main">
@@ -340,15 +441,15 @@ export default function ShoppingListPage() {
                           type="button"
                           className="btn btn-primary"
                           onClick={saveEdit}
-                          disabled={saving}
+                          disabled={isEditSubmitting}
                         >
-                          Save
+                          {isEditSubmitting ? "Saving..." : "Save"}
                         </button>
                         <button
                           type="button"
                           className="btn btn-ghost"
                           onClick={cancelEdit}
-                          disabled={saving}
+                          disabled={isEditSubmitting}
                         >
                           Cancel
                         </button>
@@ -359,7 +460,7 @@ export default function ShoppingListPage() {
                           type="button"
                           className="btn btn-ghost"
                           onClick={() => startEdit(entry)}
-                          disabled={saving}
+                          disabled={isRemovingAny}
                         >
                           Edit
                         </button>
@@ -367,9 +468,10 @@ export default function ShoppingListPage() {
                           type="button"
                           className="btn btn-soft"
                           onClick={() => removeItem(entry.key)}
-                          disabled={saving}
+                          disabled={isRemovingAny}
+                          aria-busy={isRemoving}
                         >
-                          Remove
+                          {isRemoving ? "Removing..." : "Remove"}
                         </button>
                       </>
                     )}
@@ -379,72 +481,6 @@ export default function ShoppingListPage() {
             })}
           </ul>
         )}
-      </section>
-
-      <section className="shopping-panel glass-card">
-        <div className="shopping-panel-header">
-          <h3>Add ingredient</h3>
-          <span className="shopping-hint">Saved in your manual list.</span>
-        </div>
-        <form className="shopping-add-form" onSubmit={addItem}>
-          <label className="sr-only" htmlFor="shopping-ingredient-name">
-            Ingredient name
-          </label>
-          <input
-            id="shopping-ingredient-name"
-            className="shopping-input"
-            value={newItem.name}
-            onChange={(event) =>
-              setNewItem((prev) => ({ ...prev, name: event.target.value }))
-            }
-            placeholder="Ingredient name"
-            disabled={saving}
-          />
-          <label className="sr-only" htmlFor="shopping-ingredient-note">
-            Recipe note
-          </label>
-          <input
-            id="shopping-ingredient-note"
-            className="shopping-input shopping-input--note"
-            value={newItem.note}
-            onChange={(event) =>
-              setNewItem((prev) => ({ ...prev, note: event.target.value }))
-            }
-            placeholder="Recipe note (optional)"
-            disabled={saving}
-          />
-          <label className="sr-only" htmlFor="shopping-ingredient-qty">
-            Quantity
-          </label>
-          <input
-            id="shopping-ingredient-qty"
-            type="number"
-            step="0.01"
-            className="shopping-input shopping-input--qty"
-            value={newItem.quantity}
-            onChange={(event) =>
-              setNewItem((prev) => ({ ...prev, quantity: event.target.value }))
-            }
-            placeholder="Qty"
-            disabled={saving}
-          />
-          <label className="sr-only" htmlFor="shopping-ingredient-unit">
-            Unit
-          </label>
-          <input
-            id="shopping-ingredient-unit"
-            className="shopping-input shopping-input--unit"
-            value={newItem.unit}
-            onChange={(event) =>
-              setNewItem((prev) => ({ ...prev, unit: event.target.value }))
-            }
-            placeholder="Unit"
-            disabled={saving}
-          />
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            Add item
-          </button>
-        </form>
       </section>
     </div>
   );

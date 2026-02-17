@@ -349,6 +349,17 @@ export const resolvers = {
       return recipe;
     },
 
+    updateCustomRecipe: async (_: any, { recipeId, input }: any, ctx: any) => {
+      if (!ctx.user) throw new Error("Not authenticated");
+      const recipe = await ctx.repos.customRecipes.update(
+        ctx.user.id,
+        recipeId,
+        input
+      );
+      await ctx.repos.recipesCache.upsert(recipe);
+      return recipe;
+    },
+
     deleteCustomRecipe: async (_: any, { recipeId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
       return ctx.repos.customRecipes.delete(ctx.user.id, recipeId);

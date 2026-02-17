@@ -166,6 +166,22 @@ export const CreateCustomRecipe = gql`
   }
 `;
 
+export const UpdateCustomRecipe = gql`
+  mutation UpdateCustomRecipe($recipeId: ID!, $input: CustomRecipeInput!) {
+    updateCustomRecipe(recipeId: $recipeId, input: $input) {
+      id
+      title
+      image
+      ingredients
+      steps
+      source
+      timeMinutes
+      calories
+      summary
+    }
+  }
+`;
+
 export const DeleteCustomRecipe = gql`
   mutation DeleteCustomRecipe($recipeId: ID!) {
     deleteCustomRecipe(recipeId: $recipeId)

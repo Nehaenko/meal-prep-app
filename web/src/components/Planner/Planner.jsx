@@ -129,7 +129,8 @@ export default function Planner() {
         client.mutate({
           mutation: GeneratePrepPlan,
           variables: { recipeIds: selectedList },
-        })
+        }),
+        "Hang tight, we're crafting your plan..."
       );
       const steps = data?.generatePrepPlan ?? [];
       if (!steps.length) {

@@ -124,7 +124,7 @@ function BottomNav({
                 "flex h-10 w-10 items-center justify-center rounded-full transition",
                 isActive
                   ? "bg-[var(--green-200)] text-[var(--green-900)]"
-                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]",
               )
             }
             aria-label="Search"
@@ -138,7 +138,7 @@ function BottomNav({
                 "relative flex h-10 w-10 items-center justify-center rounded-full transition",
                 isActive
                   ? "bg-[var(--green-200)] text-[var(--green-900)]"
-                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]",
               )
             }
             aria-label="Planner"
@@ -157,7 +157,7 @@ function BottomNav({
                 "relative flex h-10 w-10 items-center justify-center rounded-full transition",
                 isActive
                   ? "bg-[var(--green-200)] text-[var(--green-900)]"
-                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]",
               )
             }
             aria-label="Shopping list"
@@ -176,12 +176,12 @@ function BottomNav({
                 "relative flex h-10 w-10 items-center justify-center rounded-full transition",
                 isActive
                   ? "bg-[var(--green-200)] text-[var(--green-900)]"
-                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]",
               )
             }
             aria-label="My recipes"
           >
-            <IoAddOutline className="h-6 w-6" />
+            <PencilSquareIcon className="h-6 w-6" />
             {customCount > 0 && (
               <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[var(--green-700)] px-1 text-[0.6rem] font-bold text-white">
                 {customCount}
@@ -195,7 +195,7 @@ function BottomNav({
                 "relative flex h-10 w-10 items-center justify-center rounded-full transition",
                 isActive
                   ? "bg-[var(--green-200)] text-[var(--green-900)]"
-                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]",
               )
             }
             aria-label="Favourites"
@@ -214,7 +214,7 @@ function BottomNav({
                 "relative flex h-10 w-10 items-center justify-center rounded-full transition",
                 isActive || hasPrepDraft
                   ? "bg-[var(--green-200)] text-[var(--green-900)]"
-                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]"
+                  : "text-[var(--ink-700)] hover:bg-[var(--sand-100)]",
               )
             }
             aria-label="Prep plan"

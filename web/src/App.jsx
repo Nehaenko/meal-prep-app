@@ -10,12 +10,12 @@ import AppRoutes from "./routes";
 function App() {
   const online = useOnlineStatus();
   const { loading } = useAuth();
-  const { isLoading: uiLoading } = useLoading();
+  const { isLoading: uiLoading, label } = useLoading();
 
   return (
     <div className="app-shell">
       {!online && <ErrorBanner />}
-      {(loading || uiLoading) && <Loader />}
+      {(loading || uiLoading) && <Loader label={label} />}
       <Header />
       <main className="mx-auto max-w-6xl px-4 pb-36 pt-4 sm:pt-6">
         <AppRoutes />

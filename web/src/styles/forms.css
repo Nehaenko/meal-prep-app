@@ -99,7 +99,7 @@
 
 .custom-ingredient-row {
   display: flex;
-  gap: 0.6rem;
+  gap: 20px;
   align-items: flex-end;
   flex-wrap: wrap;
   margin-top: 10px;
