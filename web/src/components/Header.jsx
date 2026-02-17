@@ -10,6 +10,7 @@ import {
   CalendarDaysIcon,
   ClipboardDocumentListIcon,
   HeartIcon,
+  InformationCircleIcon,
   MagnifyingGlassIcon,
   PencilSquareIcon,
   SparklesIcon,
@@ -27,10 +28,15 @@ import { useCustomRecipes } from "../state/CustomRecipesContext";
 const nav = [
   { name: "Search", href: "/", icon: MagnifyingGlassIcon },
   { name: "Planner", href: "/planner", icon: CalendarDaysIcon },
-  { name: "Shopping list", href: "/shopping-list", icon: ClipboardDocumentListIcon },
+  {
+    name: "Shopping list",
+    href: "/shopping-list",
+    icon: ClipboardDocumentListIcon,
+  },
   { name: "My recipes", href: "/my-recipes", icon: PencilSquareIcon },
   { name: "Prep plan", href: "/prep-plan", icon: SparklesIcon },
   { name: "Favourites", href: "/favourites", icon: HeartIcon },
+  { name: "How it works", href: "/how-it-works", icon: InformationCircleIcon },
 ];
 
 const cx = (...c) => c.filter(Boolean).join(" ");
@@ -325,7 +331,7 @@ export default function Header() {
                   <p className="text-base font-bold text-[var(--ink-900)]">
                     {user?.email ? user.email.split("@")[0] : "Guest chef"}
                   </p>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-400)]">
+                  <p className="text-xs font-semibold tracking-wide text-[var(--muted-400)]">
                     {user?.email ?? "Sign in to save favourites"}
                   </p>
                 </div>

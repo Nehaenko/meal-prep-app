@@ -1,10 +1,13 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../state/AuthContext";
+import { markHowItWorksPending } from "../../lib/howItWorks";
 import FormComponent from "../ui/Form";
 
 export default function AuthModal() {
   const { logIn, signUp, fetchCurrentUser } = useAuth();
+  const navigate = useNavigate();
   const [loginError, setLoginError] = useState("");
   const [signupError, setSignupError] = useState("");
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
@@ -50,7 +53,9 @@ export default function AuthModal() {
         return;
       }
       await signUp(String(email), String(password));
+      markHowItWorksPending();
       await fetchCurrentUser();
+      navigate("/how-it-works");
     } catch (error) {
       setSignupError(error?.message || "Unable to create account.");
       setTimeout(() => setSignupError(""), 3000);
