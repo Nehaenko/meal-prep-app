@@ -9,6 +9,7 @@ export default function AddToPlannerButton({ recipe }) {
   } = usePlanner();
   const [plannerError, setPlannerError] = useState("");
   const [itemAddedToPlanner, setItemAddedToPlanner] = useState(false);
+  const [isPlannerSubmitting, setIsPlannerSubmitting] = useState(false);
 
   useEffect(() => {
     if (!plannerItems || !recipe?.id) return;
@@ -19,7 +20,10 @@ export default function AddToPlannerButton({ recipe }) {
 
   async function addToPlannerHandler(event) {
     event.preventDefault();
+    if (isPlannerSubmitting) return;
     if (!recipe?.id) return;
+    setPlannerError("");
+    setIsPlannerSubmitting(true);
     if (itemAddedToPlanner) {
       try {
         await removeFromPlanner(recipe.id);
@@ -27,6 +31,8 @@ export default function AddToPlannerButton({ recipe }) {
       } catch (error) {
         setPlannerError(error.message);
         setItemAddedToPlanner(false);
+      } finally {
+        setIsPlannerSubmitting(false);
       }
     } else {
       try {
@@ -35,6 +41,8 @@ export default function AddToPlannerButton({ recipe }) {
       } catch (error) {
         setPlannerError(error.message);
         setItemAddedToPlanner(false);
+      } finally {
+        setIsPlannerSubmitting(false);
       }
     }
   }
@@ -46,9 +54,17 @@ export default function AddToPlannerButton({ recipe }) {
       )}
       <button
         onClick={addToPlannerHandler}
+        disabled={isPlannerSubmitting}
         className="meal-action meal-action--primary"
+        aria-busy={isPlannerSubmitting}
       >
-        {itemAddedToPlanner ? "Remove from Planner" : "Add to Planner"}
+        {isPlannerSubmitting
+          ? itemAddedToPlanner
+            ? "Removing..."
+            : "Adding..."
+          : itemAddedToPlanner
+            ? "Remove from Planner"
+            : "Add to Planner"}
       </button>
     </>
   );

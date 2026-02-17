@@ -117,14 +117,7 @@ export default function PrepPlanPage() {
 
   return (
     <div className="prep-page">
-      <section className="prep-hero glass-card">
-        <div>
-          <h1>Prep plans</h1>
-          <p>Generate once, review, and save plans for later cook sessions.</p>
-          {error ? <p className="prep-error">{error}</p> : null}
-        </div>
-      </section>
-
+      {error ? <p className="prep-error">{error}</p> : null}
       {draftPlan?.steps?.length ? (
         <section className="prep-card glass-card">
           <div className="prep-card-header">
@@ -179,7 +172,7 @@ export default function PrepPlanPage() {
           <div>
             <h3>Saved plans</h3>
             <p className="prep-meta" data-testid="saved-plans-count">
-              {(prepPlans?.length ?? 0)} saved plan
+              {prepPlans?.length ?? 0} saved plan
               {(prepPlans?.length ?? 0) === 1 ? "" : "s"}
             </p>
           </div>
@@ -195,7 +188,8 @@ export default function PrepPlanPage() {
         {(prepPlans?.length ?? 0) > 0 ? (
           <div className="prep-plan-list">
             {prepPlans.map((plan) => {
-              const title = plan.title || formatTitleFromIds(plan.recipeIds, recipesById);
+              const title =
+                plan.title || formatTitleFromIds(plan.recipeIds, recipesById);
               return (
                 <details key={plan.id} className="prep-plan-item">
                   <summary className="prep-plan-summary">

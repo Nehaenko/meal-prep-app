@@ -93,13 +93,6 @@ export default function MealPage() {
           </ol>
         </div>
 
-        {recipe.source && (
-          <div className="meal-detail-section">
-            <h3>Source</h3>
-            <p className="meal-detail-summary">{recipe.source}</p>
-          </div>
-        )}
-
         <div className="meal-detail-actions">
           <AddToPlannerButton recipe={recipe} />
           <AddToShoppingListButton recipe={recipe} />

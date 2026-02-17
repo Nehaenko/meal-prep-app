@@ -129,7 +129,8 @@ export default function Planner() {
         client.mutate({
           mutation: GeneratePrepPlan,
           variables: { recipeIds: selectedList },
-        })
+        }),
+        "Hang tight, we're crafting your plan..."
       );
       const steps = data?.generatePrepPlan ?? [];
       if (!steps.length) {
@@ -190,7 +191,6 @@ export default function Planner() {
 
   return (
     <>
-      {loading && <p>Loading planner...</p>}
       {plannerCount === 0 && !loading && (
         <p data-testid="planner_empty" className="empty-state">
           Your planner is empty.

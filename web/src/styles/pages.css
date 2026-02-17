@@ -160,6 +160,7 @@
 .shopping-panel-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
 }
@@ -168,6 +169,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 .shopping-panel-header h3 {
@@ -343,6 +346,7 @@
 .prep-plan-summary {
   list-style: none;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.8rem;
@@ -389,7 +393,7 @@
 }
 
 .custom-hero {
-  padding: 1.6rem;
+  padding: 15px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -445,9 +449,10 @@
 .custom-card-summary {
   list-style: none;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.8rem;
+  gap: 20px;
   padding: 0.55rem 0.4rem;
   cursor: pointer;
 }
@@ -525,6 +530,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+  width: 100%;
 }
 
 @media (max-width: 860px) {
@@ -696,4 +702,121 @@
   color: var(--green-900);
   font-size: 0.85rem;
   white-space: nowrap;
+}
+
+.how-it-works-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.how-it-works-hero {
+  padding: 20px;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.how-it-works-hero-copy h1 {
+  margin: 20px 0;
+  font-size: 1.7rem;
+  color: var(--ink-900);
+}
+
+.how-it-works-hero-copy p {
+  margin: 0;
+  color: var(--muted-400);
+  font-weight: 600;
+}
+
+.how-it-works-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(31, 122, 70, 0.12);
+  color: var(--green-900);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.how-it-works-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.how-it-works-steps {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.how-it-works-steps-header h2,
+.how-it-works-tips h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.2rem;
+  color: var(--ink-900);
+}
+
+.how-it-works-steps-header p {
+  margin: 0;
+  color: var(--muted-400);
+  font-weight: 600;
+}
+
+.how-it-works-steps-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.how-it-works-step {
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  background: rgba(15, 59, 46, 0.05);
+}
+
+.how-it-works-step h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  color: var(--ink-900);
+}
+
+.how-it-works-step p {
+  margin: 0;
+  color: var(--ink-700);
+  font-weight: 600;
+}
+
+.how-it-works-tips {
+  padding: 1.6rem;
+}
+
+.how-it-works-list {
+  margin: 0.8rem 0 0;
+  padding-left: 1.2rem;
+  color: var(--ink-700);
+  font-weight: 600;
+  display: grid;
+  gap: 0.45rem;
+}
+
+@media (min-width: 768px) {
+  .how-it-works-hero {
+    grid-template-columns: 2fr 1fr;
+    align-items: center;
+  }
+
+  .how-it-works-steps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .how-it-works-steps-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

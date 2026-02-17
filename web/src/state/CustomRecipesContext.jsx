@@ -7,7 +7,12 @@ import {
   useState,
 } from "react";
 import { useApolloClient } from "@apollo/client/react";
-import { CreateCustomRecipe, CustomRecipes, DeleteCustomRecipe } from "../graphql";
+import {
+  CreateCustomRecipe,
+  CustomRecipes,
+  DeleteCustomRecipe,
+  UpdateCustomRecipe,
+} from "../graphql";
 import { useAuth } from "./AuthContext";
 
 const CustomRecipesContext = createContext(null);
@@ -121,6 +126,35 @@ export function CustomRecipesProvider({ children }) {
     }
   }, [client]);
 
+  const updateCustomRecipe = useCallback(async (recipeId, input) => {
+    setSaving(true);
+    try {
+      const sanitized = sanitizeInput(input);
+      const res = await client.mutate({
+        mutation: UpdateCustomRecipe,
+        variables: { recipeId, input: sanitized },
+        errorPolicy: "all",
+      });
+      const errs = res.errors ?? res.error?.errors;
+      if (errs?.length) throw new Error(extractMessage(errs));
+      const updated = res.data?.updateCustomRecipe ?? null;
+      if (updated) {
+        setCustomRecipes((prev) => {
+          const base = Array.isArray(prev) ? prev : [];
+          return base.map((recipe) =>
+            recipe.id === updated.id ? updated : recipe
+          );
+        });
+      }
+      return updated;
+    } catch (err) {
+      setSaving(false);
+      throw new Error(extractMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  }, [client]);
+
   const value = useMemo(
     () => ({
       customRecipes,
@@ -129,6 +163,7 @@ export function CustomRecipesProvider({ children }) {
       fetchCustomRecipes,
       createCustomRecipe,
       deleteCustomRecipe,
+      updateCustomRecipe,
     }),
     [
       customRecipes,
@@ -137,6 +172,7 @@ export function CustomRecipesProvider({ children }) {
       fetchCustomRecipes,
       createCustomRecipe,
       deleteCustomRecipe,
+      updateCustomRecipe,
     ]
   );
 
@@ -157,6 +193,7 @@ export function useCustomRecipes() {
       fetchCustomRecipes: async () => {},
       createCustomRecipe: async () => {},
       deleteCustomRecipe: async () => {},
+      updateCustomRecipe: async () => {},
     };
   }
   return ctx;

@@ -107,6 +107,7 @@ export const typeDefs = /* GraphQL */ `
     toggleFavorite(recipeId: ID!): Boolean!
 
     createCustomRecipe(input: CustomRecipeInput!): Recipe!
+    updateCustomRecipe(recipeId: ID!, input: CustomRecipeInput!): Recipe!
     deleteCustomRecipe(recipeId: ID!): Boolean!
 
     createShoppingList(recipeId: ID!): ShoppingList!

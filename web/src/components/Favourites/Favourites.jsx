@@ -2,11 +2,7 @@ import { useFavourites } from "../../state/FavouritesContext";
 import FavouriteCard from "./FavouriteCard";
 
 export default function Favourites() {
-  const { favouritesItems, loading: favouritesLoading } = useFavourites();
-
-  if (favouritesLoading) {
-    return <p className="p-4">Loading favourites…</p>;
-  }
+  const { favouritesItems } = useFavourites();
 
   if (!favouritesItems || favouritesItems.length === 0) {
     return <p className="empty-state">Your favourites list is empty.</p>;

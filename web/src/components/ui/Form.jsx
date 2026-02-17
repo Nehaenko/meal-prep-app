@@ -1,4 +1,4 @@
-export default function FormComponent({ onSubmit, error, type }) {
+export default function FormComponent({ onSubmit, error, type, isSubmitting = false }) {
   return (
     <form className="space-y-4" onSubmit={onSubmit} noValidate>
       {error && (
@@ -12,7 +12,7 @@ export default function FormComponent({ onSubmit, error, type }) {
         </p>
       )}
       <div>
-        <label className="block mb-1" htmlFor="email-signup">
+        <label className="block mb-1" htmlFor={`email-${type}`}>
           Email
         </label>
         <input
@@ -53,9 +53,16 @@ export default function FormComponent({ onSubmit, error, type }) {
       </div>
       <button
         type="submit"
-        className="w-full bg-green-500 text-white py-2 rounded cursor-pointer"
+        disabled={isSubmitting}
+        className="w-full bg-green-500 text-white py-2 rounded cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        {type === "signup" ? "Create Account" : "Log In"}
+        {type === "signup"
+          ? isSubmitting
+            ? "Creating Account..."
+            : "Create Account"
+          : isSubmitting
+            ? "Logging In..."
+            : "Log In"}
       </button>
     </form>
   );

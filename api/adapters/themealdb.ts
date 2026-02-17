@@ -148,9 +148,12 @@ function buildSummary(instructions?: string | null) {
 function parseSteps(instructions?: string | null) {
   if (!instructions) return [];
   return instructions
-    .split(/\r?\n|\./)
+    .replace(/\r/g, "\n")
+    .split(/\n+/)
+    .flatMap((line) => line.split(/(?<=[.!?])\s+(?=[A-Z0-9])/))
     .map((step) => step.trim())
-    .filter(Boolean);
+    .map((step) => step.replace(/^step\s*\d+\s*[:.)-]?\s*/i, "").trim())
+    .filter((step) => step && !/^step\s*\d+$/i.test(step));
 }
 
 function buildIngredientList(meal: MealDetail) {
