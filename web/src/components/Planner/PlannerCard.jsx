@@ -34,18 +34,20 @@ export default function PlannerCart({
             state={recipe ? { results: recipe } : undefined}
             className="block"
           >
-            {recipe?.image && (
-              <div className="meal-card-media">
+            <div className="meal-card-media">
+              {recipe?.image ? (
                 <img
                   src={recipe.image}
                   alt={recipe.title}
                   className="meal-card-image"
                 />
-              </div>
-            )}
+              ) : (
+                <div className="meal-card-image-placeholder" aria-hidden="true" />
+              )}
+            </div>
             <div className="meal-card-body">
               <p className="meal-card-title">
-                {recipe?.title ?? item.recipeId}
+                {recipe?.title ?? 'Recipe details loading...'}
               </p>
               {recipe?.summary && (
                 <p className="meal-card-summary line-clamp-2">
