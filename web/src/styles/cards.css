@@ -37,6 +37,15 @@
   box-shadow: 0 12px 24px rgba(15, 59, 46, 0.12);
 }
 
+.meal-card-image-placeholder {
+  width: 132px;
+  height: 132px;
+  border-radius: 999px;
+  border: 6px solid var(--white);
+  box-shadow: 0 12px 24px rgba(15, 59, 46, 0.12);
+  background: linear-gradient(135deg, #f2f7ee 0%, #e3efda 50%, #f2f7ee 100%);
+}
+
 .meal-card-body {
   padding: 0.4rem 1rem 0.9rem;
   text-align: left;
