@@ -12,6 +12,7 @@ const inner = svg
   .replace(/^<svg[^>]*>/, "")
   .replace(/<\/svg>\s*$/, "");
 
+const whiteBgSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#ffffff" />${inner}</svg>`;
 const maskableSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#ffffff" /><g transform="translate(51.2 51.2) scale(0.8)">${inner}</g></svg>`;
 
 const renderPng = (svgString, size) => {
@@ -23,8 +24,8 @@ const renderPng = (svgString, size) => {
 
 await fs.mkdir(outDir, { recursive: true });
 
-await fs.writeFile(path.join(outDir, "icon-192.png"), renderPng(svg, 192));
-await fs.writeFile(path.join(outDir, "icon-512.png"), renderPng(svg, 512));
+await fs.writeFile(path.join(outDir, "icon-192.png"), renderPng(whiteBgSvg, 192));
+await fs.writeFile(path.join(outDir, "icon-512.png"), renderPng(whiteBgSvg, 512));
 await fs.writeFile(
   path.join(outDir, "icon-512-maskable.png"),
   renderPng(maskableSvg, 512)
