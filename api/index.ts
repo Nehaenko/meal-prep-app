@@ -36,7 +36,16 @@ async function main() {
 
   const app = express();
   app.use(cookieParser());
-  app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
+  const allowedOrigins = (process.env.CORS_ORIGIN || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  app.use(
+    cors({
+      origin: allowedOrigins,
+      credentials: true,
+    })
+  );
   app.use(authMiddleware);
 
   const yoga = createYoga({
