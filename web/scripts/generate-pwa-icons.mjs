@@ -12,7 +12,7 @@ const inner = svg
   .replace(/^<svg[^>]*>/, "")
   .replace(/<\/svg>\s*$/, "");
 
-const maskableSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g transform="translate(51.2 51.2) scale(0.8)">${inner}</g></svg>`;
+const maskableSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#ffffff" /><g transform="translate(51.2 51.2) scale(0.8)">${inner}</g></svg>`;
 
 const renderPng = (svgString, size) => {
   const resvg = new Resvg(svgString, {

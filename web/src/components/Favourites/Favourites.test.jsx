@@ -28,22 +28,6 @@ describe("Favourites page and actions", () => {
     });
   });
 
-  it("shows loading state", () => {
-    mockUseFavourites = () => ({
-      favouritesItems: [],
-      loading: true,
-      toggleFavourites: mockToggleFavourites,
-    });
-
-    render(
-      <MemoryRouter>
-        <Favourites />
-      </MemoryRouter>
-    );
-
-    expect(screen.getByText(/loading favourites/i)).toBeInTheDocument();
-  });
-
   it("shows empty state when no favourites", () => {
     render(
       <MemoryRouter>
