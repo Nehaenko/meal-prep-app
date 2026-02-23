@@ -14,6 +14,7 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
   SparklesIcon,
+  ShieldCheckIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { IoAddOutline } from "react-icons/io5";
@@ -37,6 +38,7 @@ const nav = [
   { name: "Prep plan", href: "/prep-plan", icon: SparklesIcon },
   { name: "Favourites", href: "/favourites", icon: HeartIcon },
   { name: "How it works", href: "/how-it-works", icon: InformationCircleIcon },
+  { name: "Privacy policy", href: "/privacy", icon: ShieldCheckIcon },
 ];
 
 const cx = (...c) => c.filter(Boolean).join(" ");

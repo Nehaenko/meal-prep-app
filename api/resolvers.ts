@@ -3,15 +3,66 @@ import * as meals from "./adapters/themealdb";
 import { generatePrepPlan as buildPrepPlan } from "./adapters/llm";
 import bcrypt from "bcryptjs";
 import { GraphQLError } from "graphql";
+import { z } from "zod";
+import {
+  customRecipeSchema,
+  emailSchema,
+  idSchema,
+  plannerItemSchema,
+  prepPlanSchema,
+  sanitizeStringArray,
+  sanitizeText,
+  searchRecipesSchema,
+  shoppingItemSchema,
+  passwordSchema,
+} from "./validation";
 
-const EMAIL_IN_USE = "Email already in use";
 const BAD_CREDENTIALS = "Invalid email or password";
 const PASSWORD_REQUIREMENTS =
   "Password must be at least 8 characters and include 1 number and 1 special character.";
-const PASSWORD_REGEX = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 const MANUAL_RECIPE_ID = "manual";
 const MANUAL_LIST_TITLE = "Manual items";
 const CUSTOM_PREFIX = "custom:";
+
+const badInput = (message: string) =>
+  new GraphQLError(message, { extensions: { code: "BAD_USER_INPUT" } });
+
+const parseOrThrow = <S extends z.ZodTypeAny>(
+  schema: S,
+  value: unknown,
+  message: string
+): z.infer<S> => {
+  const result = schema.safeParse(value);
+  if (!result.success) {
+    throw badInput(message);
+  }
+  return result.data;
+};
+
+const parseAuth = (email: unknown, password: unknown, forSignup: boolean) => {
+  if (!email || !password) {
+    throw badInput("Email and password are required");
+  }
+  const emailParsed = emailSchema.safeParse(email);
+  if (!emailParsed.success) {
+    throw badInput(BAD_CREDENTIALS);
+  }
+  const passwordParsed = passwordSchema.safeParse(password);
+  if (!passwordParsed.success) {
+    throw badInput(forSignup ? PASSWORD_REQUIREMENTS : BAD_CREDENTIALS);
+  }
+  return { email: emailParsed.data as string, password: String(password) };
+};
+
+type CustomRecipeInput = {
+  title: string;
+  image?: string | null;
+  ingredients: string[];
+  steps: string[];
+};
+
+const parseCustomRecipe = (input: unknown): CustomRecipeInput =>
+  parseOrThrow(customRecipeSchema, input, "Invalid recipe") as CustomRecipeInput;
 
 type ParsedShoppingItem = {
   name: string;
@@ -219,9 +270,14 @@ export const resolvers = {
     },
 
     searchRecipes: async (_: any, { ingredients, page }: any) => {
-      const currentPage = page ?? 1;
+      const parsed = parseOrThrow(
+        searchRecipesSchema,
+        { ingredients, page: page ?? undefined },
+        "Invalid search parameters"
+      );
+      const currentPage = parsed.page ?? 1;
       const { results, totalResults } = await meals.searchRecipes(
-        ingredients,
+        parsed.ingredients,
         currentPage
       );
       // minimal card shape for results grid
@@ -244,7 +300,8 @@ export const resolvers = {
     },
 
     recipe: async (_: any, { id }: any, ctx: any) => {
-      return fetchRecipeById(ctx, id);
+      const recipeId = parseOrThrow(idSchema, id, "Invalid recipe id");
+      return fetchRecipeById(ctx, recipeId);
     },
   },
 
@@ -256,26 +313,16 @@ export const resolvers = {
       { email, password }: any,
       ctx: any
     ): Promise<boolean> => {
-      if (!email || !password) {
-        throw new GraphQLError("Email and password are required", {
-          extensions: { code: "BAD_USER_INPUT" },
-        });
-      }
-      if (!PASSWORD_REGEX.test(String(password))) {
-        throw new GraphQLError(PASSWORD_REQUIREMENTS, {
-          extensions: { code: "BAD_USER_INPUT" },
-        });
-      }
+      const auth = parseAuth(email, password, true);
 
-      const existing = await ctx.repos.users.findByEmail(email);
+      const existing = await ctx.repos.users.findByEmail(auth.email);
       if (existing) {
-        throw new GraphQLError("Email already in use", {
-          extensions: { code: "BAD_USER_INPUT" },
-        });
+        console.warn("Signup attempt for existing email");
+        throw badInput("Unable to create account");
       }
 
-      const passwordHash = await bcrypt.hash(password, 10);
-      const user = await ctx.repos.users.create(email, passwordHash);
+      const passwordHash = await bcrypt.hash(auth.password, 12);
+      const user = await ctx.repos.users.create(auth.email, passwordHash);
 
       if (!process.env.JWT_SECRET) {
         throw new GraphQLError("Server misconfigured", {
@@ -292,18 +339,12 @@ export const resolvers = {
       { email, password }: any,
       ctx: any
     ): Promise<boolean> => {
-      if (!email || !password) {
-        throw new GraphQLError("Email and password are required", {
-          extensions: { code: "BAD_USER_INPUT" },
-        });
-      }
+      const auth = parseAuth(email, password, false);
 
-      const user = await ctx.repos.users.findByEmail(email);
-      const ok = user && (await bcrypt.compare(password, user.passwordHash));
+      const user = await ctx.repos.users.findByEmail(auth.email);
+      const ok = user && (await bcrypt.compare(auth.password, user.passwordHash));
       if (!ok) {
-        throw new GraphQLError("Invalid email or password", {
-          extensions: { code: "BAD_USER_INPUT" },
-        });
+        throw badInput(BAD_CREDENTIALS);
       }
 
       if (!process.env.JWT_SECRET) {
@@ -324,12 +365,18 @@ export const resolvers = {
     // --- APP DOMAIN ---
     addToPlanner: async (_: any, { items }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      return ctx.repos.planner.addMany(ctx.user.id, items);
+      const parsedItems = parseOrThrow(
+        plannerItemSchema.array().min(1).max(50),
+        items,
+        "Invalid planner items"
+      );
+      return ctx.repos.planner.addMany(ctx.user.id, parsedItems);
     },
 
     removeFromPlanner: async (_: any, { recipeId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      return ctx.repos.planner.remove(ctx.user.id, recipeId);
+      const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
+      return ctx.repos.planner.remove(ctx.user.id, parsedId);
     },
 
     clearPlanner: async (_: any, __: any, ctx: any) => {
@@ -339,22 +386,44 @@ export const resolvers = {
 
     toggleFavorite: async (_: any, { recipeId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      return ctx.repos.favorites.toggle(ctx.user.id, recipeId);
+      const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
+      return ctx.repos.favorites.toggle(ctx.user.id, parsedId);
     },
 
     createCustomRecipe: async (_: any, { input }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      const recipe = await ctx.repos.customRecipes.create(ctx.user.id, input);
+      const parsed = parseCustomRecipe(input);
+      const sanitized = {
+        ...parsed,
+        title: sanitizeText(parsed.title),
+        ingredients: sanitizeStringArray(parsed.ingredients),
+        steps: sanitizeStringArray(parsed.steps),
+      };
+      if (!sanitized.title || sanitized.ingredients.length === 0 || sanitized.steps.length === 0) {
+        throw badInput("Invalid recipe");
+      }
+      const recipe = await ctx.repos.customRecipes.create(ctx.user.id, sanitized);
       await ctx.repos.recipesCache.upsert(recipe);
       return recipe;
     },
 
     updateCustomRecipe: async (_: any, { recipeId, input }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
+      const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
+      const parsed = parseCustomRecipe(input);
+      const sanitized = {
+        ...parsed,
+        title: sanitizeText(parsed.title),
+        ingredients: sanitizeStringArray(parsed.ingredients),
+        steps: sanitizeStringArray(parsed.steps),
+      };
+      if (!sanitized.title || sanitized.ingredients.length === 0 || sanitized.steps.length === 0) {
+        throw badInput("Invalid recipe");
+      }
       const recipe = await ctx.repos.customRecipes.update(
         ctx.user.id,
-        recipeId,
-        input
+        parsedId,
+        sanitized
       );
       await ctx.repos.recipesCache.upsert(recipe);
       return recipe;
@@ -362,29 +431,31 @@ export const resolvers = {
 
     deleteCustomRecipe: async (_: any, { recipeId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      return ctx.repos.customRecipes.delete(ctx.user.id, recipeId);
+      const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
+      return ctx.repos.customRecipes.delete(ctx.user.id, parsedId);
     },
 
     createShoppingList: async (_: any, { recipeId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
+      const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
       const existing = await ctx.repos.shoppingLists.findByRecipeId(
         ctx.user.id,
-        recipeId
+        parsedId
       );
       if (existing) return existing;
 
-      if (recipeId === MANUAL_RECIPE_ID) {
+      if (parsedId === MANUAL_RECIPE_ID) {
         return ctx.repos.shoppingLists.create(ctx.user.id, {
-          recipeId,
+          recipeId: parsedId,
           title: MANUAL_LIST_TITLE,
           items: [],
         });
       }
 
-      const recipe = await fetchRecipeById(ctx, recipeId);
+      const recipe = await fetchRecipeById(ctx, parsedId);
       if (!recipe) throw new Error("Recipe not found");
       return ctx.repos.shoppingLists.create(ctx.user.id, {
-        recipeId,
+        recipeId: parsedId,
         title: recipe.title,
         items: recipe.ingredients.map((line: string) => parseIngredientLine(line)),
       });
@@ -392,12 +463,19 @@ export const resolvers = {
 
     updateShoppingList: async (_: any, { listId, items }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      return ctx.repos.shoppingLists.updateItems(ctx.user.id, listId, items);
+      const parsedId = parseOrThrow(idSchema, listId, "Invalid list id");
+      const parsedItems = parseOrThrow(
+        shoppingItemSchema.array().max(500),
+        items,
+        "Invalid shopping list items"
+      );
+      return ctx.repos.shoppingLists.updateItems(ctx.user.id, parsedId, parsedItems);
     },
 
     deleteShoppingList: async (_: any, { listId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      return ctx.repos.shoppingLists.delete(ctx.user.id, listId);
+      const parsedId = parseOrThrow(idSchema, listId, "Invalid list id");
+      return ctx.repos.shoppingLists.delete(ctx.user.id, parsedId);
     },
 
     clearShoppingLists: async (_: any, __: any, ctx: any) => {
@@ -407,15 +485,15 @@ export const resolvers = {
 
     generatePrepPlan: async (_: any, { recipeIds }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      if (!Array.isArray(recipeIds) || recipeIds.length === 0) {
-        throw new GraphQLError("At least one recipe is required", {
-          extensions: { code: "BAD_USER_INPUT" },
-        });
-      }
+      const parsedIds = parseOrThrow(
+        idSchema.array().min(1).max(50),
+        recipeIds,
+        "At least one recipe is required"
+      );
 
       try {
         const recipesRaw = await Promise.all(
-          recipeIds.map((id: string) => fetchRecipeById(ctx, id))
+          parsedIds.map((id: string) => fetchRecipeById(ctx, id))
         );
         const recipes = recipesRaw.filter(Boolean);
         if (!recipes.length) {
@@ -429,7 +507,7 @@ export const resolvers = {
           appliesToRecipeIds:
             Array.isArray(step?.appliesToRecipeIds) && step.appliesToRecipeIds.length
               ? step.appliesToRecipeIds
-              : recipeIds,
+              : parsedIds,
         }));
       } catch (err: any) {
         console.error("generatePrepPlan failed", err);
@@ -441,23 +519,18 @@ export const resolvers = {
 
     savePrepPlan: async (_: any, { plan }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      const recipeIds = Array.isArray(plan?.recipeIds) ? plan.recipeIds : [];
-      const steps = Array.isArray(plan?.steps) ? plan.steps : [];
-      if (recipeIds.length === 0 || steps.length === 0) {
-        throw new GraphQLError("Recipe IDs and steps are required", {
-          extensions: { code: "BAD_USER_INPUT" },
-        });
-      }
+      const parsed = parseOrThrow(prepPlanSchema, plan, "Invalid prep plan");
       return ctx.repos.prepPlans.create(ctx.user.id, {
-        title: String(plan?.title ?? "Prep plan"),
-        recipeIds,
-        steps,
+        title: parsed.title,
+        recipeIds: parsed.recipeIds,
+        steps: parsed.steps,
       });
     },
 
     deletePrepPlan: async (_: any, { planId }: any, ctx: any) => {
       if (!ctx.user) throw new Error("Not authenticated");
-      return ctx.repos.prepPlans.delete(ctx.user.id, planId);
+      const parsedId = parseOrThrow(idSchema, planId, "Invalid plan id");
+      return ctx.repos.prepPlans.delete(ctx.user.id, parsedId);
     },
   },
 };

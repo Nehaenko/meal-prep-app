@@ -7,6 +7,7 @@ import ShoppingListPage from "../components/ShoppingList/ShoppingListPage";
 import PrepPlanPage from "../components/PrepPlan/PrepPlanPage";
 import CustomRecipesPage from "../components/CustomRecipes/CustomRecipesPage";
 import HowItWorksPage from "../components/HowItWorks/HowItWorksPage";
+import PrivacyPolicyPage from "../components/Privacy/PrivacyPolicyPage";
 import NotFoundPage from "../components/NotFound/NotFoundPage";
 import { useAuth } from "../state/AuthContext";
 import { hasHowItWorksPending } from "../lib/howItWorks";
@@ -31,6 +32,7 @@ export default function AppRoutes() {
       <Route path="/prep-plan" element={<PrepPlanPage />} />
       <Route path="/my-recipes" element={<CustomRecipesPage />} />
       <Route path="/how-it-works" element={<HowItWorksPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
