@@ -34,14 +34,22 @@ docker compose up -d
 MONGO_URI=mongodb://localhost:27017/meal-prep
 JWT_SECRET=change-me
 CORS_ORIGIN=http://localhost:5173
+JWT_ISSUER=meal-prep-api
+JWT_AUDIENCE=meal-prep-web
 OPENAI_API_KEY=optional-but-required-for-prep-plans
 PORT=4000
 ```
+Notes:
+- `CORS_ORIGIN` is required for cookie auth and must match the exact web origin.
+  You can pass multiple origins as a comma-separated list.
+- `JWT_ISSUER` and `JWT_AUDIENCE` are optional and default to the values above.
 
 3. Web environment variables (`meal-prep-app/web/.env`)
 ```
 VITE_API_URL=http://localhost:4000/graphql
 ```
+Note: there is no dev proxy configured, so `VITE_API_URL` is required for local
+development unless you serve the web app from the same origin as the API.
 
 4. Install dependencies
 ```
