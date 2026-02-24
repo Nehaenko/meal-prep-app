@@ -1,0 +1,23 @@
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 12px;
+  background: rgba(15, 59, 46, 0.08);
+  color: var(--ink-700);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.empty-state {
+  max-width: 36rem;
+  padding: 1.25rem;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 59, 46, 0.08);
+  background: var(--white);
+  color: var(--ink-700);
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 16px 36px rgba(15, 59, 46, 0.1);
+}

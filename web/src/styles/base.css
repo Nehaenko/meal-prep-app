@@ -1,0 +1,34 @@
+:root {
+  --green-900: #0f3b2e;
+  --green-800: #165b3a;
+  --green-700: #1f7a46;
+  --green-500: #2eb872;
+  --green-200: #d9f2e4;
+  --sand-50: #f7f8f4;
+  --sand-100: #eef0ea;
+  --ink-900: #0d1b12;
+  --ink-700: #1f3326;
+  --ink-500: #405544;
+  --muted-400: #5f6f66;
+  --white: #ffffff;
+  font-family: "Manrope", "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  color: var(--ink-900);
+  background: var(--sand-50);
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(120% 120% at 20% 20%, #f0f4ed 0%, #fafdf8 45%, #eff6ec 100%);
+  color: var(--ink-900);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f6fbf3 0%, #f0f6ec 100%);
+}
