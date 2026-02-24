@@ -96,3 +96,7 @@ API will be available at `http://localhost:4000/graphql`.
 - `Architecture.md` – system overview.
 - `ERD.md` – database schema.
 - `Validation.md` – business rules and validations.
+
+## Demo Video
+
+https://www.loom.com/share/3bcbecbd06b54f1ca25febad21d1c11c
