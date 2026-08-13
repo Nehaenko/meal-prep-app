@@ -1,6 +1,5 @@
 import "dotenv/config";
 import express from "express";
-import rateLimit from "express-rate-limit";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
@@ -19,6 +18,7 @@ import { createRecipesCacheRepo } from "./repos/recipesCache";
 import { createShoppingListsRepo } from "./repos/shoppingLists";
 import { createPrepPlansRepo } from "./repos/prepPlans";
 import { createCustomRecipesRepo } from "./repos/customRecipes";
+import { createUsageLimitsRepo } from "./repos/usageLimits";
 
 const requiredEnvironmentVariables = ["MONGO_URI", "JWT_SECRET"] as const;
 
@@ -49,6 +49,7 @@ async function createApplication() {
     shoppingLists: createShoppingListsRepo(db),
     prepPlans: createPrepPlansRepo(db),
     customRecipes: createCustomRecipesRepo(db),
+    usageLimits: createUsageLimitsRepo(db),
   };
 
   const isProd = process.env.NODE_ENV === "production";
@@ -116,34 +117,48 @@ async function createApplication() {
     return getOperationNames(req).some((op) => op.toLowerCase() === target);
   };
 
-  const graphqlLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 300,
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req: express.Request) => req.method !== "POST",
-  });
+  const distributedLimit = (
+    namespace: string,
+    max: number,
+    windowMs: number,
+    applies: (req: express.Request) => boolean
+  ) => async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (!applies(req)) return next();
+    try {
+      const result = await repos.usageLimits.consume(
+        namespace,
+        req.ip || "unknown",
+        max,
+        windowMs
+      );
+      res.setHeader("RateLimit-Limit", String(max));
+      res.setHeader("RateLimit-Remaining", String(result.remaining));
+      res.setHeader("RateLimit-Reset", String(Math.ceil(result.resetAt.getTime() / 1000)));
+      if (!result.allowed) {
+        return res.status(429).json({ error: "Too many requests. Try again later." });
+      }
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
 
-  const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 20,
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req: express.Request) =>
-      req.method !== "POST" ||
-      (!hasOperation(req, "Login") &&
-        !hasOperation(req, "SignUp") &&
-        !hasOperation(req, "DemoLogin")),
-  });
-
-  const prepPlanLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000,
-    max: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req: express.Request) =>
-      req.method !== "POST" || !hasOperation(req, "GeneratePrepPlan"),
-  });
+  const graphqlLimiter = distributedLimit(
+    "graphql",
+    300,
+    15 * 60 * 1000,
+    (req) => req.method === "POST"
+  );
+  const authLimiter = distributedLimit(
+    "auth",
+    20,
+    15 * 60 * 1000,
+    (req) =>
+      req.method === "POST" &&
+      (hasOperation(req, "Login") ||
+        hasOperation(req, "SignUp") ||
+        hasOperation(req, "DemoLogin"))
+  );
 
   app.use(authMiddleware);
 
@@ -168,7 +183,7 @@ async function createApplication() {
     cors: false,
   });
 
-  app.use("/graphql", graphqlLimiter, authLimiter, prepPlanLimiter, yoga);
+  app.use("/graphql", graphqlLimiter, authLimiter, yoga);
 
   return app;
 }

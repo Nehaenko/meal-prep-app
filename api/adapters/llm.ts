@@ -73,8 +73,8 @@ export async function generatePrepPlan(recipes: RecipeBrief[]): Promise<PrepStep
     recipes: recipes.map((recipe) => ({
       id: recipe.id,
       title: recipe.title,
-      ingredients: recipe.ingredients,
-      steps: recipe.steps
+      ingredients: recipe.ingredients.slice(0, 100),
+      steps: recipe.steps.slice(0, 100)
     }))
   };
 
