@@ -27,6 +27,15 @@ const CUSTOM_PREFIX = "custom:";
 const badInput = (message: string) =>
   new GraphQLError(message, { extensions: { code: "BAD_USER_INPUT" } });
 
+const requireUser = (ctx: any) => {
+  if (!ctx.user) {
+    throw new GraphQLError("Not authenticated", {
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+  }
+  return ctx.user;
+};
+
 const parseOrThrow = <S extends z.ZodTypeAny>(
   schema: S,
   value: unknown,
@@ -196,7 +205,7 @@ function parseIngredientLine(line: string): ParsedShoppingItem {
 
 async function fetchRecipeById(ctx: any, id: string) {
   if (id?.startsWith(CUSTOM_PREFIX)) {
-    if (!ctx.user) throw new Error("Not authenticated");
+    requireUser(ctx);
     const custom = await ctx.repos.customRecipes.get(ctx.user.id, id);
     if (!custom) return null;
     await ctx.repos.recipesCache.upsert(custom);
@@ -234,12 +243,12 @@ export const resolvers = {
     },
 
     plannerItems: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       return ctx.repos.planner.list(ctx.user.id);
     },
 
     favorites: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const ids: string[] = await ctx.repos.favorites.listIds(ctx.user.id);
       const recipes = await Promise.all(
         ids.map(async (id) => {
@@ -250,17 +259,17 @@ export const resolvers = {
     },
 
     shoppingLists: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       return ctx.repos.shoppingLists.list(ctx.user.id);
     },
 
     prepPlans: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       return ctx.repos.prepPlans.list(ctx.user.id);
     },
 
     customRecipes: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const recipes = await ctx.repos.customRecipes.list(ctx.user.id);
       // keep cache in sync for recipe lookups elsewhere
       await Promise.all(
@@ -364,7 +373,7 @@ export const resolvers = {
 
     // --- APP DOMAIN ---
     addToPlanner: async (_: any, { items }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedItems = parseOrThrow(
         plannerItemSchema.array().min(1).max(50),
         items,
@@ -374,24 +383,24 @@ export const resolvers = {
     },
 
     removeFromPlanner: async (_: any, { recipeId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
       return ctx.repos.planner.remove(ctx.user.id, parsedId);
     },
 
     clearPlanner: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       return ctx.repos.planner.clear(ctx.user.id);
     },
 
     toggleFavorite: async (_: any, { recipeId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
       return ctx.repos.favorites.toggle(ctx.user.id, parsedId);
     },
 
     createCustomRecipe: async (_: any, { input }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsed = parseCustomRecipe(input);
       const sanitized = {
         ...parsed,
@@ -408,7 +417,7 @@ export const resolvers = {
     },
 
     updateCustomRecipe: async (_: any, { recipeId, input }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
       const parsed = parseCustomRecipe(input);
       const sanitized = {
@@ -430,13 +439,13 @@ export const resolvers = {
     },
 
     deleteCustomRecipe: async (_: any, { recipeId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
       return ctx.repos.customRecipes.delete(ctx.user.id, parsedId);
     },
 
     createShoppingList: async (_: any, { recipeId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
       const existing = await ctx.repos.shoppingLists.findByRecipeId(
         ctx.user.id,
@@ -462,7 +471,7 @@ export const resolvers = {
     },
 
     updateShoppingList: async (_: any, { listId, items }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, listId, "Invalid list id");
       const parsedItems = parseOrThrow(
         shoppingItemSchema.array().max(500),
@@ -473,18 +482,18 @@ export const resolvers = {
     },
 
     deleteShoppingList: async (_: any, { listId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, listId, "Invalid list id");
       return ctx.repos.shoppingLists.delete(ctx.user.id, parsedId);
     },
 
     clearShoppingLists: async (_: any, __: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       return ctx.repos.shoppingLists.clear(ctx.user.id);
     },
 
     generatePrepPlan: async (_: any, { recipeIds }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedIds = parseOrThrow(
         idSchema.array().min(1).max(50),
         recipeIds,
@@ -518,7 +527,7 @@ export const resolvers = {
     },
 
     savePrepPlan: async (_: any, { plan }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsed = parseOrThrow(prepPlanSchema, plan, "Invalid prep plan");
       return ctx.repos.prepPlans.create(ctx.user.id, {
         title: parsed.title,
@@ -528,7 +537,7 @@ export const resolvers = {
     },
 
     deletePrepPlan: async (_: any, { planId }: any, ctx: any) => {
-      if (!ctx.user) throw new Error("Not authenticated");
+      requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, planId, "Invalid plan id");
       return ctx.repos.prepPlans.delete(ctx.user.id, parsedId);
     },

@@ -5,7 +5,7 @@ import { clearHowItWorksPending } from "../../lib/howItWorks";
 export default function HowItWorksPage() {
   useEffect(() => {
     clearHowItWorksPending();
-  }, [clearHowItWorksPending]);
+  }, []);
 
   return (
     <div className="how-it-works-page">
