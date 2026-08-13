@@ -563,12 +563,8 @@ export default function CustomRecipesPage() {
   };
 
   const handleUpdate = async (recipeId, input) => {
-    try {
-      setFormError("");
-      await withLoading(updateCustomRecipe(recipeId, input));
-    } catch (err) {
-      throw err;
-    }
+    setFormError("");
+    await withLoading(updateCustomRecipe(recipeId, input));
   };
 
   return (
