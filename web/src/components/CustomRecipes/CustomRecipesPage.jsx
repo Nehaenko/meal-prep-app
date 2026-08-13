@@ -5,6 +5,51 @@ import AddToShoppingListButton from "../ActionElements/AddToShoppingListButton";
 import { useCustomRecipes } from "../../state/CustomRecipesContext";
 import { useLoading } from "../../state/LoadingContext";
 
+const MAX_SOURCE_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_DATA_LENGTH = 900_000;
+const MAX_IMAGE_DIMENSION = 1200;
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("The selected image could not be opened."));
+    };
+    image.src = objectUrl;
+  });
+}
+
+async function prepareRecipeImage(file) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Choose an image file.");
+  }
+  if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+    throw new Error("Choose an image smaller than 8 MB.");
+  }
+
+  const image = await loadImage(file);
+  const scale = Math.min(
+    1,
+    MAX_IMAGE_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight)
+  );
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.78);
+  if (dataUrl.length > MAX_IMAGE_DATA_LENGTH) {
+    throw new Error("This image is still too large. Choose a smaller image.");
+  }
+  return dataUrl;
+}
+
 function splitSteps(value) {
   return String(value ?? "")
     .split(/\r?\n/)
@@ -78,23 +123,23 @@ function CustomRecipeCard({ recipe, onDelete, onUpdate, deleting }) {
     setEditFieldErrors({ title: "", ingredients: "", steps: "" });
   };
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) {
       setEditImageData(recipe?.image ?? null);
       setEditImageName("");
       return;
     }
-    setEditImageName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setEditImageData(typeof reader.result === "string" ? reader.result : null);
-    };
-    reader.onerror = () => {
+    try {
+      setEditError("");
+      setEditImageData(await prepareRecipeImage(file));
+      setEditImageName(file.name);
+    } catch (error) {
       setEditImageData(recipe?.image ?? null);
-      setEditError("Failed to read image file.");
-    };
-    reader.readAsDataURL(file);
+      setEditImageName("");
+      setEditError(error?.message || "Failed to prepare image file.");
+      event.target.value = "";
+    }
   };
 
   const addIngredient = () => {
@@ -472,16 +517,16 @@ export default function CustomRecipesPage() {
       setImageName("");
       return;
     }
-    setImageName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImageData(typeof reader.result === "string" ? reader.result : null);
-    };
-    reader.onerror = () => {
+    try {
+      setFormError("");
+      setImageData(await prepareRecipeImage(file));
+      setImageName(file.name);
+    } catch (error) {
       setImageData(null);
-      setFormError("Failed to read image file.");
-    };
-    reader.readAsDataURL(file);
+      setImageName("");
+      setFormError(error?.message || "Failed to prepare image file.");
+      event.target.value = "";
+    }
   };
 
   const resetForm = () => {
