@@ -1,4 +1,4 @@
-import { builtinEnvironments } from "vitest/environments";
+import { builtinEnvironments } from "vitest/runtime";
 
 const baseJsdom = builtinEnvironments.jsdom;
 

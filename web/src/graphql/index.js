@@ -21,6 +21,12 @@ export const Login = gql`
   }
 `;
 
+export const DemoLogin = gql`
+  mutation DemoLogin {
+    demoLogin
+  }
+`;
+
 export const LogOut = gql`
   mutation Logout {
     logout

@@ -1,10 +1,23 @@
 import OpenAI from 'openai';
+import { z } from 'zod';
 
 const apiKey = process.env.OPENAI_API_KEY;
-const client = apiKey ? new OpenAI({ apiKey }) : null;
+const client = apiKey
+  ? new OpenAI({ apiKey, timeout: 45_000, maxRetries: 1 })
+  : null;
 
 type PrepStep = { order: number; description: string; appliesToRecipeIds: string[] };
 type RecipeBrief = { id: string; title?: string | null; ingredients: string[]; steps: string[] };
+
+const prepPlanResponseSchema = z.object({
+  steps: z.array(
+    z.object({
+      order: z.coerce.number().int().positive(),
+      description: z.string().trim().min(1).max(1000),
+      appliesToRecipeIds: z.array(z.string().min(1)).max(50),
+    })
+  ).max(200),
+});
 
 const PREP_PLAN_SCHEMA = {
   name: 'prep_plan',
@@ -100,12 +113,22 @@ export async function generatePrepPlan(recipes: RecipeBrief[]): Promise<PrepStep
     data = extractJsonObject(fallback.choices[0]?.message?.content);
   }
 
-  const steps = Array.isArray(data.steps) ? data.steps : [];
-  return steps.map((s: any, i: number) => ({
-    order: Number(s?.order ?? i + 1),
-    description: String(s?.description ?? ''),
-    appliesToRecipeIds: Array.isArray(s?.appliesToRecipeIds)
-      ? s.appliesToRecipeIds
-      : recipes.map((r) => r.id)
-  }));
+  const parsed = prepPlanResponseSchema.safeParse(data);
+  if (!parsed.success || parsed.data.steps.length === 0) {
+    throw new Error('The prep plan service returned an invalid response');
+  }
+
+  const knownRecipeIds = new Set(recipes.map((recipe) => recipe.id));
+  return parsed.data.steps.map((step, index) => {
+    const applicableIds = step.appliesToRecipeIds.filter((id) =>
+      knownRecipeIds.has(id)
+    );
+    return {
+      order: index + 1,
+      description: step.description,
+      appliesToRecipeIds: applicableIds.length
+        ? applicableIds
+        : recipes.map((recipe) => recipe.id),
+    };
+  });
 }

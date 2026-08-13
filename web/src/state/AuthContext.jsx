@@ -6,7 +6,7 @@ import {
   useCallback,
 } from "react";
 import { useApolloClient } from "@apollo/client/react";
-import { Me, LogOut, Login, SignUp } from "../graphql/index";
+import { Me, LogOut, Login, SignUp, DemoLogin } from "../graphql/index";
 
 const AuthContext = createContext(null);
 
@@ -106,6 +106,26 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const enterDemo = async () => {
+    try {
+      setLoading(true);
+      const res = await client.mutate({
+        mutation: DemoLogin,
+        errorPolicy: "all",
+      });
+      const errs = res.errors ?? res.error?.errors;
+      if (errs?.length) throw new Error(extractMessage(errs));
+      if (!res.data?.demoLogin) {
+        throw new Error("Demo access is temporarily unavailable");
+      }
+      const me = await fetchCurrentUser();
+      if (!me) throw new Error("Demo login failed. Please try again.");
+    } catch (err) {
+      setLoading(false);
+      throw new Error(extractMessage(err));
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -115,6 +135,7 @@ export function AuthProvider({ children }) {
         logOut,
         logIn,
         signUp,
+        enterDemo,
         fetchCurrentUser,
       }}
     >

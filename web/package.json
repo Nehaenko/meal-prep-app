@@ -21,8 +21,6 @@
     "animate.css": "^4.1.1",
     "graphql": "^16.12.0",
     "graphql-tag": "^2.12.6",
-    "install": "^0.13.0",
-    "npm": "^11.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",

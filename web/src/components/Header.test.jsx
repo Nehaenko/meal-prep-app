@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 // ---- spies shared across tests
 const logInSpy = vi.fn();
 const signUpSpy = vi.fn();
+const enterDemoSpy = vi.fn();
 const fetchMeSpy = vi.fn();
 
 vi.mock("../state/AuthContext", () => ({
@@ -16,6 +17,7 @@ vi.mock("../state/AuthContext", () => ({
     logOut: vi.fn(),
     logIn: logInSpy,
     signUp: signUpSpy,
+    enterDemo: enterDemoSpy,
     fetchCurrentUser: fetchMeSpy,
   })),
 }));
@@ -77,6 +79,21 @@ describe("Header", () => {
     expect(logInSpy).toHaveBeenCalledTimes(1);
     expect(logInSpy).toHaveBeenCalledWith("alla@gmail.com", "test123");
     expect(fetchMeSpy).toHaveBeenCalled();
+  });
+
+  it("opens the populated demo account without asking for credentials", async () => {
+    render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>
+    );
+    const user = userEvent.setup();
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: /explore demo/i,
+      })
+    );
+    expect(enterDemoSpy).toHaveBeenCalledTimes(1);
   });
 
   it("logIn with non-existing email - error shown", async () => {

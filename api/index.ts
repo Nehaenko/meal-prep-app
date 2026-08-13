@@ -9,7 +9,7 @@ import { createYoga, createSchema } from "graphql-yoga";
 import { NoSchemaIntrospectionCustomRule } from "graphql";
 import { typeDefs } from "./schema";
 import { resolvers } from "./resolvers";
-import { authMiddleware, getUserFromReq } from "./auth";
+import { authMiddleware } from "./auth";
 
 // import repo factories
 import { createUsersRepo } from "./repos/users";
@@ -20,7 +20,21 @@ import { createShoppingListsRepo } from "./repos/shoppingLists";
 import { createPrepPlansRepo } from "./repos/prepPlans";
 import { createCustomRecipesRepo } from "./repos/customRecipes";
 
-async function main() {
+const requiredEnvironmentVariables = ["MONGO_URI", "JWT_SECRET"] as const;
+
+function validateEnvironment() {
+  const missing = requiredEnvironmentVariables.filter(
+    (name) => !process.env[name]?.trim()
+  );
+  if (missing.length) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(", ")}`
+    );
+  }
+}
+
+async function createApplication() {
+  validateEnvironment();
   const client = await new MongoClient(
     process.env.MONGO_URI as string
   ).connect();
@@ -51,7 +65,7 @@ async function main() {
         : false,
     })
   );
-  app.use(express.json({ limit: "1mb" }));
+  app.use(express.json({ limit: "2mb" }));
   app.use(cookieParser());
   const allowedOrigins = (process.env.CORS_ORIGIN || "")
     .split(",")
@@ -117,7 +131,9 @@ async function main() {
     legacyHeaders: false,
     skip: (req: express.Request) =>
       req.method !== "POST" ||
-      (!hasOperation(req, "Login") && !hasOperation(req, "SignUp")),
+      (!hasOperation(req, "Login") &&
+        !hasOperation(req, "SignUp") &&
+        !hasOperation(req, "DemoLogin")),
   });
 
   const prepPlanLimiter = rateLimit({
@@ -154,13 +170,60 @@ async function main() {
 
   app.use("/graphql", graphqlLimiter, authLimiter, prepPlanLimiter, yoga);
 
+  return app;
+}
+
+let applicationPromise: Promise<express.Express> | undefined;
+
+function getApplication() {
+  applicationPromise ??= createApplication();
+  return applicationPromise;
+}
+
+// Export an Express application immediately so Vercel can detect and invoke it.
+// Initialization is cached per warm function instance, including the MongoDB client.
+const app = express();
+
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
+app.use(async (req, res, next) => {
+  try {
+    const initializedApp = await getApplication();
+    initializedApp(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.use(
+  (
+    error: unknown,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction
+  ) => {
+    console.error("API request failed", error);
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "status" in error &&
+      error.status === 413
+    ) {
+      return res.status(413).json({
+        error: "The request is too large. Choose a smaller recipe image.",
+      });
+    }
+    res.status(500).json({ error: "Internal server error" });
+  }
+);
+
+export default app;
+
+if (!process.env.VERCEL) {
   const port = Number(process.env.PORT || 4000);
   app.listen(port, () =>
     console.log(`API on http://localhost:${port}/graphql`)
   );
 }
-
-main().catch((err) => {
-  console.error("Failed to start API:", err);
-  process.exit(1);
-});

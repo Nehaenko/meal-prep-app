@@ -1,6 +1,7 @@
 const BASE = "https://www.themealdb.com/api/json/v1/1";
 export const PAGE_SIZE = 10;
 const MAX_INGREDIENT_FIELDS = 20;
+const REQUEST_TIMEOUT_MS = 10_000;
 
 type MealFilterItem = {
   idMeal: string;
@@ -132,7 +133,10 @@ async function fetchMealDetail(id: string): Promise<MealDetail | null> {
 }
 
 async function fetchJson(url: URL, context: string) {
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  const res = await fetch(url, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
   if (!res.ok) {
     throw new Error(`TheMealDB ${context} ${res.status}`);
   }

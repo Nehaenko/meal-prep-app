@@ -1,7 +1,7 @@
 {
   "name": "api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon --watch . --ext ts --exec ts-node index.ts",
     "build": "tsc",
@@ -10,7 +10,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "GraphQL API for PantryPlan",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
@@ -24,16 +24,13 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^7.0.0",
     "openai": "^6.9.0",
-    "sanitize-html": "^2.13.1",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^3.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/sanitize-html": "^2.11.0",
     "@types/node": "^24.10.1",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",

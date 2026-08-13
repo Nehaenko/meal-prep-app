@@ -37,12 +37,15 @@ CORS_ORIGIN=http://localhost:5173
 JWT_ISSUER=meal-prep-api
 JWT_AUDIENCE=meal-prep-web
 OPENAI_API_KEY=optional-but-required-for-prep-plans
+DEMO_EMAIL=optional-email-for-one-click-demo-access
 PORT=4000
 ```
 Notes:
 - `CORS_ORIGIN` is required for cookie auth and must match the exact web origin.
   You can pass multiple origins as a comma-separated list.
 - `JWT_ISSUER` and `JWT_AUDIENCE` are optional and default to the values above.
+- `DEMO_EMAIL` enables one-click access to an existing seeded demo account. It
+  does not require exposing the account password to the browser.
 
 3. Web environment variables (`meal-prep-app/web/.env`)
 ```
@@ -96,3 +99,7 @@ API will be available at `http://localhost:4000/graphql`.
 - `Architecture.md` – system overview.
 - `ERD.md` – database schema.
 - `Validation.md` – business rules and validations.
+
+## Demo Video
+
+https://www.loom.com/share/3bcbecbd06b54f1ca25febad21d1c11c
