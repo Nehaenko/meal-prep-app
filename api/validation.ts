@@ -1,5 +1,4 @@
 import { z } from "zod";
-import sanitizeHtml from "sanitize-html";
 
 const trimString = (value: string) => value.trim();
 const trimmedString = () => z.string().trim();
@@ -65,8 +64,10 @@ export const searchRecipesSchema = z.object({
   page: z.number().int().min(1).max(200).optional(),
 });
 
+// Recipe fields are plain text and React escapes them when rendering. Strip any
+// pasted HTML markup here without pulling an HTML parser into the API runtime.
 export const sanitizeText = (value: string) =>
-  sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} }).trim();
+  value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
 export const sanitizeStringArray = (values: string[]) =>
   values.map(sanitizeText).filter((value) => value.length > 0);
