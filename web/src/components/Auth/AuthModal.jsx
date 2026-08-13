@@ -6,12 +6,13 @@ import { markHowItWorksPending } from "../../lib/howItWorks";
 import FormComponent from "../ui/Form";
 
 export default function AuthModal() {
-  const { logIn, signUp, fetchCurrentUser } = useAuth();
+  const { logIn, signUp, enterDemo, fetchCurrentUser } = useAuth();
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState("");
   const [signupError, setSignupError] = useState("");
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
   const [isSignupSubmitting, setIsSignupSubmitting] = useState(false);
+  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
   const passwordRequirements =
     "Password must be at least 8 characters and include 1 number and 1 special character.";
 
@@ -64,6 +65,19 @@ export default function AuthModal() {
     }
   }
 
+  async function demoHandler() {
+    if (isDemoSubmitting) return;
+    setLoginError("");
+    setIsDemoSubmitting(true);
+    try {
+      await enterDemo();
+    } catch (error) {
+      setLoginError(error?.message || "Demo access is temporarily unavailable.");
+    } finally {
+      setIsDemoSubmitting(false);
+    }
+  }
+
   return (
     <>
       <TabGroup
@@ -89,6 +103,25 @@ export default function AuthModal() {
         </TabList>
         <TabPanels>
           <TabPanel>
+            <div className="mb-5 rounded-2xl border border-[var(--green-200)] bg-[var(--green-50)] p-4">
+              <p className="font-semibold text-[var(--ink-900)]">
+                See PantryPlan with sample data
+              </p>
+              <p className="mt-1 text-sm text-[var(--ink-700)]">
+                Explore a prepared planner, favourites, recipes, and shopping lists.
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary mt-3 w-full"
+                onClick={demoHandler}
+                disabled={isDemoSubmitting || isLoginSubmitting}
+              >
+                {isDemoSubmitting ? "Opening demo…" : "Explore demo"}
+              </button>
+            </div>
+            <p className="mb-4 text-center text-sm text-[var(--muted-400)]">
+              Or sign in to your account
+            </p>
             <FormComponent
               onSubmit={logInHandler}
               error={loginError}

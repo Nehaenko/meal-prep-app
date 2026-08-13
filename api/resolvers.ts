@@ -366,6 +366,25 @@ export const resolvers = {
       return true;
     },
 
+    demoLogin: async (_: any, __: any, ctx: any): Promise<boolean> => {
+      const demoEmail = process.env.DEMO_EMAIL?.trim().toLowerCase();
+      if (!demoEmail) {
+        throw new GraphQLError("Demo access is not configured", {
+          extensions: { code: "SERVICE_UNAVAILABLE" },
+        });
+      }
+
+      const user = await ctx.repos.users.findByEmail(demoEmail);
+      if (!user) {
+        throw new GraphQLError("Demo access is temporarily unavailable", {
+          extensions: { code: "SERVICE_UNAVAILABLE" },
+        });
+      }
+
+      ctx.setAuthCookie({ id: user.id, email: user.email });
+      return true;
+    },
+
     logout: async (_: any, __: any, ctx: any): Promise<boolean> => {
       ctx.clearAuthCookie();
       return true;
