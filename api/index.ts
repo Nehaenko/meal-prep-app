@@ -131,7 +131,9 @@ async function createApplication() {
     legacyHeaders: false,
     skip: (req: express.Request) =>
       req.method !== "POST" ||
-      (!hasOperation(req, "Login") && !hasOperation(req, "SignUp")),
+      (!hasOperation(req, "Login") &&
+        !hasOperation(req, "SignUp") &&
+        !hasOperation(req, "DemoLogin")),
   });
 
   const prepPlanLimiter = rateLimit({

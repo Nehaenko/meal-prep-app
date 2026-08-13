@@ -99,6 +99,7 @@ export const typeDefs = /* GraphQL */ `
   type Mutation {
     signup(email: String!, password: String!): Boolean!
     login(email: String!, password: String!): Boolean!
+    demoLogin: Boolean!
     logout: Boolean!
 
     addToPlanner(items: [PlannerItemInput!]!): [PlannerItem!]!
