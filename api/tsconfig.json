@@ -9,5 +9,5 @@
     "skipLibCheck": true
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "web"]
+  "exclude": ["node_modules", "dist", "web", "**/*.test.ts", "vitest.config.mts"]
 }

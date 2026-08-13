@@ -4,6 +4,7 @@ import { generatePrepPlan as buildPrepPlan } from "./adapters/llm";
 import bcrypt from "bcryptjs";
 import { GraphQLError } from "graphql";
 import { z } from "zod";
+import { deleteRecipeImage, storeRecipeImage } from "./storage/recipeImages";
 import {
   customRecipeSchema,
   emailSchema,
@@ -419,7 +420,7 @@ export const resolvers = {
     },
 
     createCustomRecipe: async (_: any, { input }: any, ctx: any) => {
-      requireUser(ctx);
+      const user = requireUser(ctx);
       const parsed = parseCustomRecipe(input);
       const sanitized = {
         ...parsed,
@@ -430,13 +431,14 @@ export const resolvers = {
       if (!sanitized.title || sanitized.ingredients.length === 0 || sanitized.steps.length === 0) {
         throw badInput("Invalid recipe");
       }
+      sanitized.image = await storeRecipeImage(sanitized.image, user.id);
       const recipe = await ctx.repos.customRecipes.create(ctx.user.id, sanitized);
       await ctx.repos.recipesCache.upsert(recipe);
       return recipe;
     },
 
     updateCustomRecipe: async (_: any, { recipeId, input }: any, ctx: any) => {
-      requireUser(ctx);
+      const user = requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
       const parsed = parseCustomRecipe(input);
       const sanitized = {
@@ -448,19 +450,33 @@ export const resolvers = {
       if (!sanitized.title || sanitized.ingredients.length === 0 || sanitized.steps.length === 0) {
         throw badInput("Invalid recipe");
       }
+      const existing = await ctx.repos.customRecipes.get(user.id, parsedId);
+      sanitized.image = await storeRecipeImage(sanitized.image, user.id);
       const recipe = await ctx.repos.customRecipes.update(
         ctx.user.id,
         parsedId,
         sanitized
       );
+      if (existing?.image && existing.image !== recipe.image) {
+        deleteRecipeImage(existing.image).catch((error) =>
+          console.error("Failed to delete replaced recipe image", error)
+        );
+      }
       await ctx.repos.recipesCache.upsert(recipe);
       return recipe;
     },
 
     deleteCustomRecipe: async (_: any, { recipeId }: any, ctx: any) => {
-      requireUser(ctx);
+      const user = requireUser(ctx);
       const parsedId = parseOrThrow(idSchema, recipeId, "Invalid recipe id");
-      return ctx.repos.customRecipes.delete(ctx.user.id, parsedId);
+      const existing = await ctx.repos.customRecipes.get(user.id, parsedId);
+      const deleted = await ctx.repos.customRecipes.delete(user.id, parsedId);
+      if (deleted && existing?.image) {
+        deleteRecipeImage(existing.image).catch((error) =>
+          console.error("Failed to delete recipe image", error)
+        );
+      }
+      return deleted;
     },
 
     createShoppingList: async (_: any, { recipeId }: any, ctx: any) => {
@@ -512,12 +528,29 @@ export const resolvers = {
     },
 
     generatePrepPlan: async (_: any, { recipeIds }: any, ctx: any) => {
-      requireUser(ctx);
+      const user = requireUser(ctx);
       const parsedIds = parseOrThrow(
-        idSchema.array().min(1).max(50),
+        idSchema.array().min(1).max(12),
         recipeIds,
         "At least one recipe is required"
       );
+
+      const configuredLimit = Number(process.env.AI_DAILY_LIMIT || 5);
+      const dailyLimit = Number.isInteger(configuredLimit) && configuredLimit > 0
+        ? configuredLimit
+        : 5;
+      const usage = await ctx.repos.usageLimits.consume(
+        "prep-plan-user",
+        user.id,
+        dailyLimit,
+        24 * 60 * 60 * 1000
+      );
+      if (!usage.allowed) {
+        throw new GraphQLError(
+          "Daily prep-plan limit reached. Please try again tomorrow.",
+          { extensions: { code: "RATE_LIMITED" } }
+        );
+      }
 
       try {
         const recipesRaw = await Promise.all(
