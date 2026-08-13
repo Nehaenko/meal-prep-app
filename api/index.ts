@@ -65,7 +65,7 @@ async function createApplication() {
         : false,
     })
   );
-  app.use(express.json({ limit: "1mb" }));
+  app.use(express.json({ limit: "2mb" }));
   app.use(cookieParser());
   const allowedOrigins = (process.env.CORS_ORIGIN || "")
     .split(",")
@@ -203,6 +203,16 @@ app.use(
     _next: express.NextFunction
   ) => {
     console.error("API request failed", error);
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "status" in error &&
+      error.status === 413
+    ) {
+      return res.status(413).json({
+        error: "The request is too large. Choose a smaller recipe image.",
+      });
+    }
     res.status(500).json({ error: "Internal server error" });
   }
 );

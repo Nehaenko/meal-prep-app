@@ -27,9 +27,19 @@ export const stepsSchema = z
   .min(1)
   .max(200);
 
+const recipeImageSchema = z
+  .string()
+  .max(900_000)
+  .refine(
+    (value) =>
+      /^data:image\/(?:jpeg|png|webp);base64,/i.test(value) ||
+      /^https?:\/\//i.test(value),
+    "Invalid recipe image"
+  );
+
 export const customRecipeSchema = z.object({
   title: trimmedString().min(1).max(120),
-  image: z.string().url().max(2048).optional().nullable(),
+  image: recipeImageSchema.optional().nullable(),
   ingredients: ingredientsSchema,
   steps: stepsSchema,
 });
